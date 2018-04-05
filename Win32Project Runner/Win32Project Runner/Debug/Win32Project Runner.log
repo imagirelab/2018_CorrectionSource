@@ -1,0 +1,48 @@
+﻿  Source.cpp
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(53): warning C4244: '引数': 'double' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(272): warning C4244: '=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(292): warning C4101: 'mass2': ローカル変数は 1 度も使われていません。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(292): warning C4101: 'mass3': ローカル変数は 1 度も使われていません。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(292): warning C4101: 'mass1': ローカル変数は 1 度も使われていません。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(647): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(653): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(658): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(663): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(669): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(674): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(679): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(684): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(690): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(695): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(700): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(706): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(711): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(716): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(722): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(727): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(732): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(738): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(744): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(749): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(754): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(760): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(765): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(770): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(776): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(781): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(786): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(791): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(797): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(802): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(807): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(812): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(818): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(824): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(829): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(834): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(839): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(844): warning C4244: '-=': 'float' から 'int' への変換です。データが失われる可能性があります。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(635): warning C4101: 'keyBuf': ローカル変数は 1 度も使われていません。
+\\psf\home\documents\visual studio 2015\projects\win32project runner\win32project runner\source.cpp(1016): warning C4244: '+=': 'float' から 'int' への変換です。データが失われる可能性があります。
+  Win32Project Runner.vcxproj -> \\psf\home\documents\visual studio 2015\Projects\Win32Project Runner\Debug\Win32Project Runner.exe
+  Win32Project Runner.vcxproj -> \\psf\home\documents\visual studio 2015\Projects\Win32Project Runner\Debug\Win32Project Runner.pdb (Full PDB)
