@@ -2,6 +2,48 @@
 #include <stdlib.h>
 #include <time.h>
 
+// 画像を指定するID
+enum class RENDER_IMAGE{
+	PLAYER1 = 0;
+	PLAYER1_NUM = 2;
+	PLAYER2 = PLAYER1 + PLAYER1_NUM;
+	PLAYER2_NUM = 2;
+	PLAYER3 = PLAYER2 + PLAYER2_NUM;
+	PLAYER3_NUM = 2;
+	NAWA = PLAYER3 + PLAYER3_NUM;
+	NAWA_NUM = 16;
+	FONT1 = NAWA + NAWA_NUM;
+	FONT1_NUM = 15;
+	FONT2 = FONT1 + FONT1_NUM;
+	FONT2_NUM = 68;
+	FONT3 = FONT2 + FONT2_NUM;
+	FONT3_NUM = 42;
+	FONT4 = FONT3 + FONT3_NUM;
+	FONT4_NUM = 35;
+	FONT5 = FONT4 + FONT4_NUM;
+	FONT5_NUM = 25;
+	NUMBER1 = FONT5 + FONT5_NUM;
+	NUMBER1_NUM = 20;
+	NUMBER2 = NUMBER1 + NUMBER1_NUM;
+	NUMBER2_NUM = 6;
+	BOMB = NUMBER2 + NUMBER2_NUM;
+	BOMB_NUM = 16;
+	TITLE = BOMB + BOMB_NUM;
+	TITLE_NUM = 1;
+	ATTEND = TITLE + TITLE_NUM;
+	ATTEND_NUM = 1;
+	Z = ATTEND + ATTEND_NUM;
+	Z_NUM = 1;
+	
+	IMAGE_NUM = Z + Z_NUM;
+};
+
+enum class RENDER_COLOR{
+	BG = 0,
+	GROUND = 1,
+};
+
+
 struct VECTOR2D
 {
 	float x;
@@ -24,7 +66,6 @@ private:
 	VECTOR2D velocity = {0.0f, 0.0f};
 	int attend_ = 0;
 	int life = 1;
-	int image[2];
 	int death = 0;
 	bool onGround = FALSE;
 	unsigned char jump_key_ = KEY_INPUT_SPACE;
@@ -159,11 +200,12 @@ public:
 	virtual ~FSM(){}
 	
 	virtual void Initialize() = 0;
-	virtual SCENE_NAME Update(PlayerList *players, const char *keyBuf) = 0;
+	virtual SCENE_NAME Update(PlayerList *players, Renderer &render, const char *keyBuf) = 0;
 };
 
 class FSM_TITLE : public FSM
 {
+	int start_;
 public:
 	FSM_TITLE(){}	
 	~FSM_TITLE(){}
@@ -177,23 +219,19 @@ public:
 		*check = 0;
 		
 		players->Initialize();
+		start_ = GetNowCount();
 	}
 	
-	SCENE_NAME Update(PlayerList *players, const char *keyBuf) override
+	SCENE_NAME Update(PlayerList *players, Renderer &render, const char *keyBuf) override
 	{
-		// char *keyBuf, int *title, int *font2, int *z, int *start, int *scene
-		Title(keyBuf, &title, font2, &z, &start, &scene);
+		render.Draw(0,0,RENDER_IMAGE::TITLE);
 
-		int end, second;
-		DrawGraph(0, 0, *title, FALSE);
+		int scene_time = CheackTime(start_);
 
-		end = GetNowCount();
-		second = (end - *start) / 1000.0;
-
-		if (second % 2 == 0)
+		if (scene_time % 2 == 0)
 		{
-			DrawGraph(300, 360, font2[14], TRUE);
-			DrawGraph(450, 355, *z, TRUE);
+			render.Draw(300, 360, RENDER_IMAGE::FONT2, 14);
+			render.Draw(450, 355, RENDER_IMAGE::Z);
 		}
 
 		if (keyBuf[KEY_INPUT_Z] == 1)
@@ -210,27 +248,27 @@ public:
 	~FSM_ATTEND(){}
 	
 	void Initialize() override {}
-	SCENE_NAME Update(PlayerList *players, const char *keyBuf) override 
+	SCENE_NAME Update(PlayerList *players, Renderer &render, const char *keyBuf) override 
 	{
 		// char *keyBuf, Playerlist *players, int *attend, int *font4, int *scene)
 		bool all_attended = players->CheckAttend(keyBuf);
 
-		DrawGraph(0, 0, *attend, FALSE);
+		render.Draw(0, 0, RENDER_IMAGE::ATTEND);
 
 		if (player->attend_ == 1)
 		{
-			DrawGraph(260, 250, font4[4], TRUE);
-			DrawGraph(287, 300, player->image[0], TRUE);
+			render.Draw(260, 250,RENDER_IMAGE::FONT4, 4);
+			render.Draw(287, 300,RENDER_IMAGE::PLAYER1, 0);
 		}
 		if (player2->attend_ == 1)
 		{
-			DrawGraph(100, 250, font4[4], TRUE);
-			DrawGraph(127, 300, player2->image[0], TRUE);
+			render.Draw(100, 250,RENDER_IMAGE::FONT4, 4);
+			render.Draw(127, 300,RENDER_IMAGE::PLAYER2, 0);
 		}
 		if (player3->attend_ == 1)
 		{
-			DrawGraph(420, 250, font4[4], TRUE);
-			DrawGraph(447, 300, player3->image[0], TRUE);
+			render.Draw(420, 250,RENDER_IMAGE::FONT4, 4);
+			render.Draw(447, 300,RENDER_IMAGE::PLAYER3, 0);
 		}
 
 		if (keyBuf[KEY_INPUT_Z] == 1 && all_attended)
@@ -247,11 +285,11 @@ class FSM_IN_GAME : public FSM
 protected:
 	int start_;
 
-	void DrawScreen(Player player, Player *player2, Player *player3, int *color, int *nawa, int *anime, int *speed, int *bomb)
+	void DrawScreen(Renderer &render)
 	{
 		//地面と背景の表示
-		DrawBox(0, 0, 640, 480, color[0], TRUE);
-		DrawBox(0, 400, 640, 480, color[1], TRUE);
+		render.DrawBox(0, 0, 640, 480, RENDER_COLOR::BG);
+		render.DrawBox(0, 400, 640, 480, RENDER_COLOR::GROUND, TRUE);
 
 		//主人公の表示
 		if (player.attend_ == 1)
@@ -314,7 +352,7 @@ public:
 	void Initialize() override {
 		start_ = GetNowCount();
 	};
-	SCENE_NAME Update(PlayerList *players, const char *keyBuf) override 
+	SCENE_NAME Update(PlayerList *players, Renderer &render, const char *keyBuf) override 
 	{
 		players->CheackonGround();
 
@@ -335,7 +373,7 @@ public:
 	void Initialize() override 
 	{
 	}
-	SCENE_NAME Update(PlayerList *players, const char *keyBuf) override 
+	SCENE_NAME Update(PlayerList *players, Renderer &render, const char *keyBuf) override 
 	{
 		// int *font3, int *font4, int *number1, int *number2
 		
@@ -364,7 +402,7 @@ public:
 	~FSM_PLAY(){}
 	
 	void Initialize() override {}
-	SCENE_NAME Update(PlayerList *players, const char *keyBuf) override 
+	SCENE_NAME Update(PlayerList *players, Renderer &render, const char *keyBuf) override 
 	{
 		SCENE_NAME ret = SCENE_NAME::INVALID;
 		
@@ -415,7 +453,7 @@ public:
 		start_ = GetNowCount();
 	}
 	
-	SCENE_NAME Update(PlayerList *players, const char *keyBuf) override 
+	SCENE_NAME Update(PlayerList *players, Renderer &render, const char *keyBuf) override 
 	{
 // int score, int *font1, int *font3, int *number1
 		FSM_IN_GAME::Updada();		
@@ -460,7 +498,7 @@ public:
 		}
 	}
 	
-	void Update(PlayerList *players, const char *keyBuf)
+	void Update(PlayerList *players, Renderer &render, const char *keyBuf)
 	{
 		
 		SCENE_NAME next = current_->Update();
@@ -472,34 +510,59 @@ public:
 	}
 };
 
-//画像読み込み
-void LoadResource(int *nawa, Player *player, Player *player2, Player *player3, int *color, int *font1, int *font2, int *font3, int *font4, int *font5, int *number1, int *number2, int *bomb, int *z, int *title, int *attend)
+class Renderer
 {
-	player->image[0] = LoadGraph(".\\media\\image\\1stand.png");
-	player->image[1] = LoadGraph(".\\media\\image\\1jump.png");
-	player2->image[0] = LoadGraph(".\\media\\image\\2stand.png");
-	player2->image[1] = LoadGraph(".\\media\\image\\2jump.png");
-	player3->image[0] = LoadGraph(".\\media\\image\\3stand.png");
-	player3->image[1] = LoadGraph(".\\media\\image\\3jump.png");
+private:
+	int image[RENDER_IMAGE::IMAGE_NUM];
+	int color[2];
+public:
+	renderer(){}
+	~renderer(){}
+	
+	void Initialize()
+	{
+		//画像読み込み
+		image_[RENDER_IMAGE::PLAYER1 + 0] = LoadGraph(".\\media\\image\\1stand.png");
+		image_[RENDER_IMAGE::PLAYER1 + 1] = LoadGraph(".\\media\\image\\1jump.png");
+		image_[RENDER_IMAGE::PLAYER1 + 0] = LoadGraph(".\\media\\image\\2stand.png");
+		image_[RENDER_IMAGE::PLAYER2 + 1] = LoadGraph(".\\media\\image\\2jump.png");
+		image_[RENDER_IMAGE::PLAYER3 + 1] = LoadGraph(".\\media\\image\\3stand.png");
+		image_[RENDER_IMAGE::PLAYER3 + 1] = LoadGraph(".\\media\\image\\3jump.png");
 
-	LoadDivGraph(".\\media\\image\\nawa.png", 16, 1, 16, 585, 172.625, nawa);
-	LoadDivGraph(".\\media\\image\\font.png", 15, 1, 15, 600, 60, font1);
-	LoadDivGraph(".\\media\\image\\font2.png", 68, 4, 17, 240, 60, font2);
-	LoadDivGraph(".\\media\\image\\font3.png", 42, 3, 14, 300, 60, font3);
-	LoadDivGraph(".\\media\\image\\font4.png", 35, 5, 7, 120, 60, font4);
-	LoadDivGraph(".\\media\\image\\font5.png", 25, 5, 5, 180, 60, font5);
-	LoadDivGraph(".\\media\\image\\number.png", 20, 10, 2, 60, 60, number1);
-	LoadDivGraph(".\\media\\image\\number2.png", 6, 6, 1, 30, 60, number2);
-	LoadDivGraph(".\\media\\image\\bomb.jpg", 16, 8, 2, 128, 128, bomb);
-	LoadDivGraph(".\\media\\image\\Z.jpg", 1, 1, 1, 47, 51, z);
+		LoadDivGraph(".\\media\\image\\nawa.png", 16, 1, 16, 585, 172.625, image_+RENDER_IMAGE::NAWA);
+		LoadDivGraph(".\\media\\image\\font.png", 15, 1, 15, 600, 60, image_+RENDER_IMAGE::FONT1);
+		LoadDivGraph(".\\media\\image\\font2.png", 68, 4, 17, 240, 60, image_+RENDER_IMAGE::FONT2);
+		LoadDivGraph(".\\media\\image\\font3.png", 42, 3, 14, 300, 60, image_+RENDER_IMAGE::FONT3);
+		LoadDivGraph(".\\media\\image\\font4.png", 35, 5, 7, 120, 60, image_+RENDER_IMAGE::FONT4);
+		LoadDivGraph(".\\media\\image\\font5.png", 25, 5, 5, 180, 60, image_+RENDER_IMAGE::FONT5);
+		LoadDivGraph(".\\media\\image\\number.png", 20, 10, 2, 60, 60, image_+RENDER_IMAGE::NUMBER1);
+		LoadDivGraph(".\\media\\image\\number2.png", 6, 6, 1, 30, 60, image_+RENDER_IMAGE::NUMBER2);
+		LoadDivGraph(".\\media\\image\\bomb.jpg", 16, 8, 2, 128, 128, image_+RENDER_IMAGE::BOMB);
+		LoadDivGraph(".\\media\\image\\Z.jpg", 1, 1, 1, 47, 51, image_+RENDER_IMAGE::Z);
+		LoadDivGraph(".\\media\\image\\title.jpg", 1, 1, 1, 640, 480, image_+RENDER_IMAGE::TITLE));
+		LoadDivGraph(".\\media\\image\\attend.png", 1, 1, 1, 640, 480, image_+RENDER_IMAGE::ATTEND));
 
-	LoadDivGraph(".\\media\\image\\title.jpg", 1, 1, 1, 640, 480, title);
-	LoadDivGraph(".\\media\\image\\attend.png", 1, 1, 1, 640, 480, attend);
 
+		color_[0] = GetColor(255, 255, 255);// BG
+		color_[1] = GetColor(0, 255, 0); // GROUND
+	}
 
-	color[0] = GetColor(255, 255, 255);
-	color[1] = GetColor(0, 255, 0);
-}
+	void DrawBox(int x1 , int y1 , int x2 , int y2, RENDER_COLOR color)
+	{
+		DrawBox(x1, y1, x2, y2, color_[color], TRUE);
+	}
+
+	void Draw(int x, int y, RENDER_IMAGE image, int image_sub = 0, bool turn = false)
+	{
+		int GrHandle = image_[image + image_sub];
+		
+		if(turn){
+			DrawTurnGraph(x, y, GrHandle, TRUE);
+		}else{
+			DrawGraph(x, y, GrHandle, TRUE);
+		}
+	}
+};
 
 
 
@@ -547,6 +610,13 @@ int ChangeSpeed(bool change, int speed, int score)
 	return speed;
 }
 
+class Game
+{
+	int anime = 0, change = TRUE, speed = 5, score = 0, scene = 1, check = 0;
+private:
+public:
+	
+};
 
 int WINAPI WinMain(HINSTANCE hI, HINSTANCE hP, LPSTR lpC, int nC)
 {
@@ -554,23 +624,21 @@ int WINAPI WinMain(HINSTANCE hI, HINSTANCE hP, LPSTR lpC, int nC)
 	
 	PlayerList *players = new PlayerList(3);
 	Scene scene;
-	
-	
-int nawa[16], color[2], font1[15], font2[68], font3[42], font4[35], font5[25], number1[20], number2[6], bomb[16], title, attend, z;
-int time;
-int anime = 0, change = TRUE, speed = 5, score = 0, scene = 1, check = 0;
+	Game game;
+	Renderer renderer;
+
+	ChangeWindowMode(TRUE);
+	if (DxLib_Init() == -1)
+		return -1;
+	SetDrawScreen(DX_SCREEN_BACK);
+
+	renderer.Initialie();
 
 	players->setJumpKey(0, KEY_INPUT_SPACE);
 	players->setJumpKey(1, KEY_INPUT_1);
 	players->setJumpKey(2, KEY_INPUT_RETURN);
 	
-	ChangeWindowMode(TRUE);
-	if (DxLib_Init() == -1)
-		return -1;
-	SetDrawScreen(DX_SCREEN_BACK);
-	LoadResource(nawa, &player, &player2, &player3, color, font1, font2, font3, font4, font5, number1, number2, bomb, &z, &title, &attend);
-
-
+	
 	while (ProcessMessage() == 0)
 	{
 		// 入力
@@ -578,7 +646,7 @@ int anime = 0, change = TRUE, speed = 5, score = 0, scene = 1, check = 0;
 		GetHitKeyStateAll(keyBuf);
 		
 		// 更新
-		scene.Update(players, keyBuf);
+		scene.Update(players, renderer, keyBuf);
 
 		// 画面切り替え
 		ScreenFlip();
