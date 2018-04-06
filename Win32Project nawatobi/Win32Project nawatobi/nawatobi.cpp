@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <time.h>
 
+#define SAFE_DELETE(p) if(p) delete (p); (p)=nullptr;
+#define SAFE_DELETE_ARRAY(p) if(p) delete[] (p); (p)=nullptr;
+
 // 画像を指定するID
 enum class RENDER_IMAGE{
 	PLAYER1 = 0;
@@ -49,7 +52,7 @@ struct VECTOR2D
 	float x;
 	float y;
 };
-VECTOR2D operator+(const VECTOR2D& u,const VECTOR2D& v);
+VECTOR2D operator+(const VECTOR2D& u, const VECTOR2D& v);
 
 //時間計算
 int CheackTime(int start)
@@ -58,457 +61,6 @@ int CheackTime(int start)
 	int interval = end - start;
 	return interval / 1000;
 }
-
-class Player
-{
-private:
-	VECTOR2D pos = {320.0f, 320.0f};
-	VECTOR2D velocity = {0.0f, 0.0f};
-	int attend_ = 0;
-	int life = 1;
-	int death = 0;
-	bool onGround = FALSE;
-	unsigned char jump_key_ = KEY_INPUT_SPACE;
-public:
-	Player(){}
-	~Player(){}
-	
-	void setJumpKey(unsigned char key)
-	{
-		jump_key_ = key;
-	}
-	
-	void Initialize()
-	{
-		life = 1;
-		death = 0;
-		attend_ = 0;
-		onGround = FALSE;
-		velocity = {0.0f, 0.0f};
-	}
-	
-	bool CheckAttend(keyBuf)
-	{
-		if (keyBuf[jump_key_] == 1)
-		{
-			attend_ = 1;
-		}
-	}
-	
-	void Move()
-	{
-		const VECTOR2D Gravity = {0.0f, 0.8f};
-		if (!onGround) velocity += GravVec;
-		
-		player->y += player->velocity;
-	}
-	
-	void CheackonGround()
-	{
-		if (pos.y > 400.0f)
-		{
-			pos.y = 400.0f;
-			onGround = TRUE;
-			velocity.y = 0.0f;
-		}
-	}
-	
-	void Jump(char *keyBuf)
-	{
-		if (keyBuf[jump_key_] == 1 && player->onGround)
-		{
-			const VECTOR2D jumpVec = {0.0f, -15.0f };
-			player->velocity = jumpVec;
-			player->onGround = false;
-		}
-	}
-};
-
-class PlayerList
-{
-private:
-	int num_ = 0;
-	Player *player_=nullptr;
-public:
-	PlayerList(int num){
-		num_ = num;
-		player_ = new Player[num];
-	}
-	~PlayerList(){
-		delete[] player_;
-		num_ = 0;
-	}
-	
-	bool setJumpKey(unsigned int idx, unsigned char key)
-	{
-		if(num_ <= idx) return false; // 存在しないプレイヤーを指定
-		player_[idx].setJumpKey(key);
-		
-		return true;
-	}
-
-	void Initialize()
-	{
-		for( auto&& player : player_ )
-		{
-			player.Initialize();
-		}
-	}
-
-	void Update()
-	{
-		for( auto&& player : player_ )
-		{
-			player.Move();
-		}
-	}
-
-	void Jump()
-	{
-		for( auto&& player : player_ )
-		{
-			player.Jump();
-		}
-	}
-
-	void CheackonGround()
-	{
-		for( auto&& player : player_ )
-		{
-			player.CheackonGround();
-		}
-	}
-};
-
-enum class SCENE_NAME{
-	TITLE = 0,
-	ATTEND,
-	START,
-	PLAY,
-	GAMEOVER,
-	
-	NUM,
-	
-	INVALID,
-};
-
-// 各シーンのFSM
-class FSM
-{
-public:
-	FSM(){}	
-	virtual ~FSM(){}
-	
-	virtual void Initialize() = 0;
-	virtual SCENE_NAME Update(PlayerList *players, Renderer &render, const char *keyBuf) = 0;
-};
-
-class FSM_TITLE : public FSM
-{
-	int start_;
-public:
-	FSM_TITLE(){}	
-	~FSM_TITLE(){}
-	
-	void Initialize() override 
-	{
-		*anime = 0;
-		*change = TRUE;
-		*speed = 5;
-		*score = 0;
-		*check = 0;
-		
-		players->Initialize();
-		start_ = GetNowCount();
-	}
-	
-	SCENE_NAME Update(PlayerList *players, Renderer &render, const char *keyBuf) override
-	{
-		render.Draw(0,0,RENDER_IMAGE::TITLE);
-
-		int scene_time = CheackTime(start_);
-
-		if (scene_time % 2 == 0)
-		{
-			render.Draw(300, 360, RENDER_IMAGE::FONT2, 14);
-			render.Draw(450, 355, RENDER_IMAGE::Z);
-		}
-
-		if (keyBuf[KEY_INPUT_Z] == 1)
-			return SCENE_NAME::ATTEND;
-		}
-	
-	return SCENE_NAME::INVALID;
-};
-
-class FSM_ATTEND : public FSM
-{
-public:
-	FSM_ATTEND(){}	
-	~FSM_ATTEND(){}
-	
-	void Initialize() override {}
-	SCENE_NAME Update(PlayerList *players, Renderer &render, const char *keyBuf) override 
-	{
-		// char *keyBuf, Playerlist *players, int *attend, int *font4, int *scene)
-		bool all_attended = players->CheckAttend(keyBuf);
-
-		render.Draw(0, 0, RENDER_IMAGE::ATTEND);
-
-		if (player->attend_ == 1)
-		{
-			render.Draw(260, 250,RENDER_IMAGE::FONT4, 4);
-			render.Draw(287, 300,RENDER_IMAGE::PLAYER1, 0);
-		}
-		if (player2->attend_ == 1)
-		{
-			render.Draw(100, 250,RENDER_IMAGE::FONT4, 4);
-			render.Draw(127, 300,RENDER_IMAGE::PLAYER2, 0);
-		}
-		if (player3->attend_ == 1)
-		{
-			render.Draw(420, 250,RENDER_IMAGE::FONT4, 4);
-			render.Draw(447, 300,RENDER_IMAGE::PLAYER3, 0);
-		}
-
-		if (keyBuf[KEY_INPUT_Z] == 1 && all_attended)
-		{
-			return SCENE_NAME::START;
-		}
-		
-		return SCENE_NAME::INVALID;
-	}
-};
-
-class FSM_IN_GAME : public FSM
-{
-protected:
-	int start_;
-
-	void DrawScreen(Renderer &render)
-	{
-		//地面と背景の表示
-		render.DrawBox(0, 0, 640, 480, RENDER_COLOR::BG);
-		render.DrawBox(0, 400, 640, 480, RENDER_COLOR::GROUND, TRUE);
-
-		//主人公の表示
-		if (player.attend_ == 1)
-		{
-			if (player.life == 1)
-			{
-				if (player.onGround == FALSE)
-					DrawGraph(player.x - 33, player.y - 100, player.image[1], TRUE);
-				else
-					DrawTurnGraph(player.x - 33, player.y - 100, player.image[0], TRUE);
-			}
-			else
-			{
-				if (player.death < 17)
-					DrawGraph(player.x - 33, player.y - 100, bomb[player.death], TRUE);
-				(player.death)++;
-			}
-		}
-		if (player2->attend_ == 1)
-		{
-			if (player2->life == 1)
-			{
-				if (player2->onGround == FALSE)
-					DrawGraph(player2->x - 131, player2->y - 100, player2->image[1], TRUE);
-				else
-					DrawTurnGraph(player2->x - 131, player2->y - 100, player2->image[0], TRUE);
-			}
-			else
-			{
-				if ((player2->death) < 17)
-					DrawGraph(player.x - 131, player.y - 100, bomb[player2->death], TRUE);
-				(player2->death)++;
-			}
-		}
-		if (player3->attend_ == 1)
-		{
-			if (player3->life == 1)
-			{
-				if (player3->onGround == FALSE)
-					DrawGraph(player3->x + 65, player3->y - 100, player3->image[1], TRUE);
-				else
-					DrawTurnGraph(player3->x + 65, player3->y - 100, player3->image[0], TRUE);
-			}
-			else
-			{
-				if ((player3->death) < 17)
-					DrawGraph(player3->x - 65, player3->y - 100, bomb[player.death], TRUE);
-				(player3->death)++;
-			}
-		}
-
-		//なわの表示
-		DrawGraph(27, 235, nawa[(*anime) / (*speed)], TRUE);
-	}
-
-public:
-	FSM_START(){}	
-	~FSM_START(){}
-	
-	void Initialize() override {
-		start_ = GetNowCount();
-	};
-	SCENE_NAME Update(PlayerList *players, Renderer &render, const char *keyBuf) override 
-	{
-		players->CheackonGround();
-
-		players->Update();
-		players->Jump(keyBuf);
-
-		DrawScreen(player, &player2, &player3, color, nawa, &anime, &speed, bomb);
-	}
-};
-
-//スタートシーン
-class FSM_START : public FSM_IN_GAME
-{
-public:
-	FSM_START(){}	
-	~FSM_START(){}
-	
-	void Initialize() override 
-	{
-	}
-	SCENE_NAME Update(PlayerList *players, Renderer &render, const char *keyBuf) override 
-	{
-		// int *font3, int *font4, int *number1, int *number2
-		
-
-		FSM_IN_GAME::Updada();
-		
-		int time = CheackTime(start_);
-		if (3 <= time){
-			return SCENE_NAME::PLAY;
-		}else
-		if(2 <= time){
-			DrawGraph(310, 230, font4[0], TRUE);
-			DrawGraph(400, 230, number2[5], TRUE);
-		}else {
-			DrawGraph(310, 230, font3[25], TRUE);
-			DrawGraph(460, 230, number1[10], TRUE);
-		}
-		return SCENE_NAME::INVALID;
-	}
-};
-
-class FSM_PLAY : public FSM_IN_GAME
-{
-public:
-	FSM_PLAY(){}	
-	~FSM_PLAY(){}
-	
-	void Initialize() override {}
-	SCENE_NAME Update(PlayerList *players, Renderer &render, const char *keyBuf) override 
-	{
-		SCENE_NAME ret = SCENE_NAME::INVALID;
-		
-		int getnow = (*anime);
-		if (player->onGround == TRUE)
-		{
-			if (((*speed) * 16) - 10 < getnow && player->attend_ == 1)
-			{
-				player->life = 0;
-				ret = SCENE_NAME::INVALID;
-			}
-		}
-		if (player2->onGround == TRUE)
-		{
-			if (((*speed) * 16) - 10 < getnow && player2->attend_ == 1)
-			{
-				player2->life = 0;
-				ret = SCENE_NAME::INVALID;
-			}
-		}
-		if (player3->onGround == TRUE)
-		{
-			if (((*speed) * 16) - 10 < getnow && player3->attend_ == 1)
-			{
-				player3->life = 0;
-				ret = SCENE_NAME::INVALID;
-			}
-		}
-
-		NawaMove(&anime, &change, &speed, &score);
-		ChangeSpeed(&change, &speed, &score);
-
-		FSM_IN_GAME::Updada();
-		
-		return ret;
-	}
-};
-
-class FSM_GAMEOVER : public FSM_IN_GAME
-{
-private:
-	int start_;
-public:
-	FSM_GAMEOVER(){}	
-	~FSM_GAMEOVER(){}
-	
-	void Initialize() override {
-		start_ = GetNowCount();
-	}
-	
-	SCENE_NAME Update(PlayerList *players, Renderer &render, const char *keyBuf) override 
-	{
-// int score, int *font1, int *font3, int *number1
-		FSM_IN_GAME::Updada();		
-		
-		int digit0 = score % 10;
-		int digit1 = score / 10;
-
-		DrawGraph(310, 150, font1[3], TRUE);
-		DrawGraph(200, 230, font3[17], TRUE);
-		DrawGraph(450, 230, number1[digit1], TRUE);
-		DrawGraph(510, 230, number1[digit0], TRUE);
-
-		if (CheackTime(start_) > 20)
-		{
-			return SCENE_NAME::TITLE;
-		}
-		
-		return SCENE_NAME::TITLE;
-	}
-};
-
-// シーン管理
-class Scene{
-	FSM **fsm_[SCENE_NAME::NUM];
-	FSM *current_;
-public:
-	Scene(){
-		// SCENE_NAME の番号と合わせる
-		fsm_[0] = new FSM_TITLE();
-		fsm_[1] = new FSM_ATTEND();
-		fsm_[2] = new FSM_START();
-		fsm_[3] = new FSM_PLAY();
-		fsm_[4] = new FSM_GAMEOVER();
-		
-		current_ = fsm_[0];
-		current_->Initialize();
-	}
-	~Scene(){
-		for( auto&& fsm : fsm_ )
-		{
-			delete fsm;
-		}
-	}
-	
-	void Update(PlayerList *players, Renderer &render, const char *keyBuf)
-	{
-		
-		SCENE_NAME next = current_->Update();
-		
-		if(next != SCENE_NAME::INVALID && next < SCENE_NAME::NUM){
-			current_ = fsm_[next];
-			current_->Initialize();
-		}
-	}
-};
 
 class Renderer
 {
@@ -526,7 +78,7 @@ public:
 		image_[RENDER_IMAGE::PLAYER1 + 1] = LoadGraph(".\\media\\image\\1jump.png");
 		image_[RENDER_IMAGE::PLAYER1 + 0] = LoadGraph(".\\media\\image\\2stand.png");
 		image_[RENDER_IMAGE::PLAYER2 + 1] = LoadGraph(".\\media\\image\\2jump.png");
-		image_[RENDER_IMAGE::PLAYER3 + 1] = LoadGraph(".\\media\\image\\3stand.png");
+		image_[RENDER_IMAGE::PLAYER3 + 0] = LoadGraph(".\\media\\image\\3stand.png");
 		image_[RENDER_IMAGE::PLAYER3 + 1] = LoadGraph(".\\media\\image\\3jump.png");
 
 		LoadDivGraph(".\\media\\image\\nawa.png", 16, 1, 16, 585, 172.625, image_+RENDER_IMAGE::NAWA);
@@ -564,65 +116,573 @@ public:
 	}
 };
 
+class Nawa{
+private:
+	bool change_;
+	int anime_;
+	int speed_;
 
-
-//縄の挙動
-void NawaMove(int *anime, int *change, int *speed, int *score)
-{
-	int i;
-
-	//縄の基本動作
-	if (*change == TRUE)
+	//スピード変化
+	void changeSpeed(int score)
 	{
-		(*anime)++;
-		if (*anime > ((*speed) * 16) - 2)
-		{
-			*change = FALSE;
-			(*score)++;
-		}
-	}
-	if (*change == FALSE)
-	{
-		(*anime)--;
-		if (*anime < (*speed - 1))
-		{
-			*change = TRUE;
+		const int table[] = {
+			5, 4, 3, 2, 4, 2, 3, 2, 5, 3, // 0-49
+			4,2,5,2,1, // 50 -
+		};
 
-		}
-	}
-}
-
-//スピード変化
-int ChangeSpeed(bool change, int speed, int score)
-{
-	const int table[] = {
-		5, 4, 3, 2, 4, 2, 3, 2, 5, 3, // 0-49
-		4,2,5,2,1, // 50-
-	};
-	
-	if(change){
 		int rank = score / 5;
-		if(sizeof(table)/sizeof(table[0]) <= rank) return 1;
-		
-		return table[rank];
+		if(sizeof(table)/sizeof(table[0]) <= rank) speed_ = 1;
+
+		speed_ = table[rank];
+	}	
+	
+public:
+	Nawa(){Initialize();}
+	~Nawa(){}
+	
+	void Initialize()
+	{
+		change_ = true;
+		anime_ = 0;
+		speed_ = 5;
 	}
 	
-	return speed;
+	bool Update(int score)
+	{
+		bool is_clear = false;
+
+		//縄の基本動作
+		if (change_)
+		{
+			anime_++;
+			if (anime_> (speed_ * 16) - 2)
+			{
+				change_ = FALSE;
+				is_clear = true;
+			}
+		}else{
+			anime_--;
+			if (anime_ < (speed_ - 1))
+			{
+				change_ = TRUE;
+				changeSpeed(score);
+			}
+		}
+
+		return is_clear;
+	}
+	
+	void Draw(Renderer &render)
+	{
+		render.Draw(27, 235, RENDER_IMAGE::NAWA, anime_ / speed_);
+	}
+
+};
+
+class Player
+{
+private:
+	VECTOR2D pos = {320.0f, 320.0f};
+	VECTOR2D velocity = {0.0f, 0.0f};
+	bool attend_ = false;
+	int life = 1;
+	int death = 0;
+	bool onGround = FALSE;
+	unsigned char jump_key_ = KEY_INPUT_SPACE;
+	int x_offset_ = 0;
+public:
+	Player(){}
+	~Player(){}
+	
+	void setJumpKey(unsigned char key)
+	{
+		jump_key_ = key;
+	}
+	void setXoffset(int offset)
+	{
+		x_offset_ = offset;
+	}
+
+	bool has_left() const
+	{
+		return (death < 17);
+	}
+	
+	void Initialize()
+	{
+		life = 1;// できればローカル変数と区別がつかない名前は避ける
+		death = 0;// できればローカル変数と区別がつかない名前は避ける
+		attend_ = false;
+		onGround = FALSE;// できればローカル変数と区別がつかない名前は避ける
+		velocity_ = {0.0f, 0.0f};
+	}
+	
+	bool CheckAttend(const char *keyBuf)
+	{
+		if (keyBuf[jump_key_] == 1)
+		{
+			attend_ = true;
+		}
+		
+		return attend_;
+	}
+	
+	void CheackonGround()
+	{
+		if (pos.y > 400.0f)
+		{
+			pos.y = 400.0f;
+			onGround = TRUE;
+			velocity_.y = 0.0f;
+		}
+	}
+	
+	void CheckAlive()
+	{
+		if (!attend_) returm;
+		
+		if (attend_ && 0 == life){
+			death++;
+		}
+		
 }
+	
+	void Move()
+	{
+		if (!attend_) returm;
+
+		const VECTOR2D Gravity = {0.0f, 0.8f};
+		if (!onGround) velocity_ += GravVec;
+		
+		player->y += player->velocity_;
+	}
+	
+	void Jump(const char *keyBuf)
+	{
+		if (!attend_) returm;
+
+		if (keyBuf[jump_key_] == 1 && player->onGround)
+		{
+			const VECTOR2D jumpVec = {0.0f, -15.0f };
+			velocity = jumpVec;
+			onGround = false;
+		}
+	}
+
+	void Draw(Renderer &render, RENDER_IMAGE image)
+	{
+		if (!attend_) return;
+
+		if (life == 1)
+		{
+			bool is_turn = (onGround);
+			render.Draw(x + x_offset_, y - 100, image, is_turn ? 0 : 1, is_turn);
+		}
+		else
+		{
+			if (has_left()){
+				render.Draw(x + x_offset_, y - 100, RENDER_IMAGE::BOMB, player1->death);
+			}
+		}
+};
+
+class PlayerList
+{
+private:
+	int num_ = 0;
+	Player *player_=nullptr;
+public:
+	PlayerList(int num){
+		num_ = num;
+		player_ = new Player[num];
+	}
+	~PlayerList(){
+		delete[] player_;
+		num_ = 0;
+	}
+	
+	bool setJumpKey(unsigned int idx, unsigned char key)
+	{
+		if(num_ <= idx) return false; // 存在しないプレイヤーを指定
+		player_[idx].setJumpKey(key);
+		
+		return true;
+	}
+	
+	bool setXoffset(unsigned int idx, int offset)
+	{
+		if(num_ <= idx) return false; // 存在しないプレイヤーを指定
+		player_[idx].setXoffset(offset);
+		
+		return true;
+	}
+
+	void Initialize()
+	{
+		for( auto&& player : player_ )
+		{
+			player.Initialize();
+		}
+	}
+
+	void Update()
+	{
+		for( auto&& player : player_ )
+		{
+			player.Move();
+		}
+	}
+
+	void Jump()
+	{
+		for( auto&& player : player_ )
+		{
+			player.Jump();
+		}
+	}
+
+	void CheackonGround()
+	{
+		for( auto&& player : player_ )
+		{
+			player.CheackonGround();
+		}
+	}
+
+	unsigned int CheckAttend(const char *keyBuf)
+	{
+		unsigned int flag = 0;
+		
+		for( int i = 0; i < num_; i++ )
+		{
+			if(player_[i].CheckAttend(keyBuf)){
+				flag += (1 << i);
+			}
+		}
+		
+		return flag;
+	}
+};
 
 class Game
 {
-	int anime = 0, change = TRUE, speed = 5, score = 0, scene = 1, check = 0;
 private:
+	int score_;
+	Nawa nawa_;
+	PlayerList *players_;
 public:
+	Game(){
+		players_ = new PlayerList(3);
+	}
+	~Game(){
+		SAFE_DELETE(players_);
+	}
 	
+
+	void Initialize()
+	{
+		score_ = 0;
+		nawa_.Initialize();
+	}
+	
+	unsigned int CheckAttend(const char *keyBuf)
+	{
+		return players_->CheckAttend(keyBuf);
+	}
+
+	void Update(Game &game, const char *keyBuf) 
+	{
+		players_->CheackonGround();
+
+		players_->Update();
+		players_->Jump(keyBuf);
+		players_->CheckAlive();
+	}
 };
+
+
+enum class SCENE_NAME{
+	TITLE = 0,
+	ATTEND,
+	START,
+	PLAY,
+	GAMEOVER,
+	
+	NUM,
+	
+	INVALID,
+};
+
+// 各シーンのFSM
+class FSM
+{
+public:
+	FSM(){}	
+	virtual ~FSM(){}
+	
+	virtual void Initialize(Game &game) = 0;
+	virtual SCENE_NAME Update(Game &game, Renderer &render, const char *keyBuf) = 0;
+};
+
+class FSM_TITLE : public FSM
+{
+	int start_;
+public:
+	FSM_TITLE(){}	
+	~FSM_TITLE(){}
+	
+	void Initialize(Game &game) override 
+	{
+		start_ = GetNowCount();
+	}
+	
+	SCENE_NAME Update(Game &game, Renderer &render, const char *keyBuf) override
+	{
+		render.Draw(0,0,RENDER_IMAGE::TITLE);
+
+		int time = CheackTime(start_);
+
+		if (time & 1)// 一秒ごと点滅
+		{
+			render.Draw(300, 360, RENDER_IMAGE::FONT2, 14);
+			render.Draw(450, 355, RENDER_IMAGE::Z);
+		}
+
+		if (keyBuf[KEY_INPUT_Z] == 1)
+			return SCENE_NAME::ATTEND;
+		}
+	
+		return SCENE_NAME::INVALID;
+	}
+};
+
+class FSM_ATTEND : public FSM
+{
+public:
+	FSM_ATTEND(){}	
+	~FSM_ATTEND(){}
+	
+	void Initialize(Game &game) override 
+	{
+		game.Initialize();
+	}
+	SCENE_NAME Update(Game &game, Renderer &render, const char *keyBuf) override 
+	{
+		// char *keyBuf, Playerlist *players, int *attend, int *font4, int *scene)
+		bool attended = game.CheckAttend(keyBuf);
+
+		render.Draw(0, 0, RENDER_IMAGE::ATTEND);
+
+		if (attended & (1<<0))
+		{
+			render.Draw(260, 250,RENDER_IMAGE::FONT4, 4);
+			render.Draw(287, 300,RENDER_IMAGE::PLAYER1, 0);
+		}
+		if (attended & (1<<1))
+		{
+			render.Draw(100, 250,RENDER_IMAGE::FONT4, 4);
+			render.Draw(127, 300,RENDER_IMAGE::PLAYER2, 0);
+		}
+		if (attended & (1<<2))
+		{
+			render.Draw(420, 250,RENDER_IMAGE::FONT4, 4);
+			render.Draw(447, 300,RENDER_IMAGE::PLAYER3, 0);
+		}
+
+		bool is_all_attended = (attended & 0x7) == 0x7;
+		if (keyBuf[KEY_INPUT_Z] == 1 && is_all_attended)
+		{
+			return SCENE_NAME::START;
+		}
+		
+		return SCENE_NAME::INVALID;
+	}
+};
+
+class FSM_IN_GAME : public FSM
+{
+protected:
+	int start_;
+
+	void Draw(conat Game &game, Renderer &render)
+	{
+		//地面と背景の表示
+		render.DrawBox(0, 0, 640, 480, RENDER_COLOR::BG);
+		render.DrawBox(0, 400, 640, 480, RENDER_COLOR::GROUND, TRUE);
+///////////////////////////////////////// todo
+		//主人公の表示
+		player1->Draw(render, RENDER_IMAGE::PLAYER1);
+		player2->Draw(render, RENDER_IMAGE::PLAYER2);
+		player3->Draw(render, RENDER_IMAGE::PLAYER3);
+		
+		nawa_.Draw(render);
+	}
+
+public:
+	FSM_START(){}	
+	~FSM_START(){}
+	
+	virtual void Initialize(Game &game) override {
+		start_ = GetNowCount();
+	};
+	virtual SCENE_NAME Update(Game &game, Renderer &render, const char *keyBuf) override 
+	{
+		game.Update(keyBuf);
+
+		Draw(game, render);
+		
+		return SCENE_NAME::INVALID;
+	}
+};
+
+//スタートシーン
+class FSM_START : public FSM_IN_GAME
+{
+public:
+	FSM_START(){}	
+	~FSM_START(){}
+	
+	void Initialize(Game &game) override
+	{
+		FSM_IN_GAME::Initialize();
+	}
+	SCENE_NAME Update(PlayerList *players, Renderer &render, const char *keyBuf) override 
+	{
+		FSM_IN_GAME::Updada(players, render, keyBuf);
+		
+		int time = CheackTime(start_);
+		if (3 <= time){
+			return SCENE_NAME::PLAY;
+		}else
+		if(2 <= time){
+			render.Draw(310, 230, RENDER_IMAGE::FONT4, 0);
+			render.Draw(400, 230, RENDER_IMAGE::NUMBER2,5);
+		}else {
+			render.Draw(310, 230, RENDER_IMAGE::FONT3, 25);
+			render.Draw(460, 230, RENDER_IMAGE::NUMBER1, 10);
+		}
+		return SCENE_NAME::INVALID;
+	}
+};
+
+class FSM_PLAY : public FSM_IN_GAME
+{
+public:
+	FSM_PLAY(){}	
+	~FSM_PLAY(){}
+	
+	void Initialize(Game &game) override {}
+	SCENE_NAME Update(PlayerList *players, Renderer &render, const char *keyBuf) override 
+	{
+		SCENE_NAME ret = SCENE_NAME::INVALID;
+		
+///////////////////////////////////////// todo
+		int getnow = (*anime);
+		if (player1->onGround == TRUE)
+		{
+			if (((*speed) * 16) - 10 < getnow && player1->attend_ == 1)
+			{
+				player1->life = 0;
+				ret = SCENE_NAME::GAMEOVER;
+			}
+		}
+		if (player2->onGround == TRUE)
+		{
+			if (((*speed) * 16) - 10 < getnow && player2->attend_ == 1)
+			{
+				player2->life = 0;
+				ret = SCENE_NAME::GAMEOVER;
+			}
+		}
+		if (player3->onGround == TRUE)
+		{
+			if (((*speed) * 16) - 10 < getnow && player3->attend_ == 1)
+			{
+				player3->life = 0;
+				ret = SCENE_NAME::GAMEOVER;
+			}
+		}
+
+		bool is_clear = nawa_.Update();
+		if(is_clear) score++;
+
+		FSM_IN_GAME::Updada(players, render, keyBuf);
+		
+		return ret;
+	}
+};
+
+class FSM_GAMEOVER : public FSM_IN_GAME
+{
+private:
+	int start_;
+public:
+	FSM_GAMEOVER(){}	
+	~FSM_GAMEOVER(){}
+	
+	void Initialize(Game &game) override {
+		start_ = GetNowCount();
+	}
+	
+	SCENE_NAME Update(Gmae &game, Renderer &render, const char *keyBuf) override 
+	{
+		FSM_IN_GAME::Updada();		
+		
+		render.Draw(310, 150, RENDER_IMAGE::FONT1, 3);
+		render.Draw(200, 230, RENDER_IMAGE::FONT3, 17);
+		render.Draw(450, 230, RENDER_IMAGE::NUMBER1, score / 10);
+		render.Draw(510, 230, RENDER_IMAGE::NUMBER1, score % 10);
+
+		int time = CheackTime(start_);
+		if (time > 20)
+		{
+			return SCENE_NAME::TITLE;
+		}
+		
+		return SCENE_NAME::INVALID;
+	}
+};
+
+// シーン管理
+class Scene{
+	FSM **fsm_[SCENE_NAME::NUM];
+	FSM *current_;
+public:
+	Scene(){
+		// SCENE_NAME の番号と合わせる
+		fsm_[0] = new FSM_TITLE();
+		fsm_[1] = new FSM_ATTEND();
+		fsm_[2] = new FSM_START();
+		fsm_[3] = new FSM_PLAY();
+		fsm_[4] = new FSM_GAMEOVER();
+	}
+	~Scene(){
+		for( auto&& fsm : fsm_ )
+		{
+			delete fsm;
+		}
+	}
+	
+	void Initialize()
+	{
+		current_ = fsm_[0];
+		current_->Initialize();
+	}
+	
+	void Update(PlayerList *players, Renderer &render, const char *keyBuf)
+	{
+		SCENE_NAME next = current_->Update(players, render, keyBuf);
+		
+		if(next != SCENE_NAME::INVALID && next < SCENE_NAME::NUM){
+			current_ = fsm_[next];
+			current_->Initialize();
+		}
+	}
+};
+
 
 int WINAPI WinMain(HINSTANCE hI, HINSTANCE hP, LPSTR lpC, int nC)
 {
-	srand((unsigned int)time(NULL));
-	
-	PlayerList *players = new PlayerList(3);
 	Scene scene;
 	Game game;
 	Renderer renderer;
@@ -633,25 +693,27 @@ int WINAPI WinMain(HINSTANCE hI, HINSTANCE hP, LPSTR lpC, int nC)
 	SetDrawScreen(DX_SCREEN_BACK);
 
 	renderer.Initialie();
+	game.Initialize();
+	scene.Initialize();
 
+	// 入力設定
 	players->setJumpKey(0, KEY_INPUT_SPACE);
 	players->setJumpKey(1, KEY_INPUT_1);
 	players->setJumpKey(2, KEY_INPUT_RETURN);
-	
+
+	players->setXoffset(0, -33);
+	players->setXoffset(1, -131);
+	players->setXoffset(2, +65);
 	
 	while (ProcessMessage() == 0)
 	{
-		// 入力
 		char keyBuf[256];
 		GetHitKeyStateAll(keyBuf);
 		
-		// 更新
-		scene.Update(players, renderer, keyBuf);
+		scene.Update(game, renderer, keyBuf);
 
-		// 画面切り替え
 		ScreenFlip();
 		
-		// 修了リクエスト
 		if (keyBuf[KEY_INPUT_ESCAPE]) break;
 	}
 	DxLib_End();
