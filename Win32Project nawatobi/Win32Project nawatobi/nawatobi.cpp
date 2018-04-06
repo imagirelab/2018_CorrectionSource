@@ -2,6 +2,14 @@
 #include <stdlib.h>
 #include <time.h>
 
+class VECTOR2D
+{
+public:
+	float x = 0.0f;
+	float y = 0.0f;
+};
+VECTOR2D operator+(const VECTOR2D& u,const VECTOR2D& v);
+
 class Player
 {
 private:
@@ -13,10 +21,15 @@ private:
 	int in = 0;
 	int on = 0;
 	int onGround = FALSE;
-	float inerVec = 0;
+	VECTOR2D inerVec;
 public:
 	Player(){}
 	~Player(){}
+	
+	void ApplyGravity(const VECTOR2D &GravVec)
+	{
+		if (!onGround) inerVec += GravVec;
+	}
 };
 
 class PlayerList
@@ -33,12 +46,13 @@ public:
 		delete[] player_;
 		num_ = 0;
 	}
-};
-
-struct VECTOR2D
-{
-	float x;
-	float y;
+	
+	void ApplyGravity(const VECTOR2D &GravVec)
+	{
+		for( auto&& player : player_ )
+			player.ApplyGravity(GravVec);
+		}
+	}
 };
 
 //画像読み込み
@@ -315,17 +329,6 @@ void CheackDeath(Player *player, Player *player2, Player *player3, int *anime, i
 	}
 }
 
-//重力設定
-void ApplyGravity(Player *player, Player *player2, Player *player3, VECTOR2D GravVec)
-{
-	if (player->onGround == FALSE)
-		player->inerVec += GravVec.y;
-	if (player2->onGround == FALSE)
-		player2->inerVec += GravVec.y;
-	if (player3->onGround == FALSE)
-		player3->inerVec += GravVec.y;
-}
-
 //画像表示
 void DrawScreen(Player player, Player *player2, Player *player3, int *color, int *nawa, int *anime, int *speed, int *bomb)
 {
@@ -435,7 +438,7 @@ void GameOver(int *score, int *font1, int *font3, int *number1, int *start, int 
 //ソース本文
 int WINAPI WinMain(HINSTANCE hI, HINSTANCE hP, LPSTR lpC, int nC)
 {
-	PlayerList players = new PlayerList(3);
+	PlayerList *players = new PlayerList(3);
 	VECTOR2D jumpVec = { -15 };
 	VECTOR2D GraVec = { 0.8 };
 	int nawa[16], color[2], font1[15], font2[68], font3[42], font4[35], font5[25], number1[20], number2[6], bomb[16], title, attend, z;
@@ -466,6 +469,7 @@ int WINAPI WinMain(HINSTANCE hI, HINSTANCE hP, LPSTR lpC, int nC)
 			}
 			CheackonGround(&player, &player2, &player3);
 
+			players->ApplyGravity();
 			Gravity(&player, &player2, &player3, GraVec);
 			CharaMove(&player, &player2, &player3);
 			CharaJump(keyBuf, jumpVec, &player, &player2, &player3);
