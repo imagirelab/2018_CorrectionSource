@@ -301,7 +301,7 @@ void CheackDeath(Player *player, Player *player2, Player *player3, int *anime, i
 }
 
 //重力設定
-void Gravity(Player *player, Player *player2, Player *player3, VECTOR2D GravVec)
+void ApplyGravity(Player *player, Player *player2, Player *player3, VECTOR2D GravVec)
 {
 	if (player->onGround == FALSE)
 		player->inerVec += GravVec.y;
