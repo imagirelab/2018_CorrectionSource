@@ -19,19 +19,44 @@ private:
 	int death = 0;
 	int in = 0;
 	int on = 0;
-	int onGround = FALSE;
+	bool onGround = FALSE;
+	unsigned char jump_key_ = KEY_INPUT_SPACE;
 public:
 	Player(){}
 	~Player(){}
 	
-	void ApplyGravity(const VECTOR2D &GravVec)
+	
+	void setJumpKey(unsigned char key)
 	{
-		if (!onGround) velocity += GravVec;
+		jump_key_ = key;
 	}
 	
 	void Move()
 	{
+		const VECTOR2D Gravity = {0.0f, 0.8f};
+		if (!onGround) velocity += GravVec;
+		
 		player->y += player->velocity;
+	}
+	
+	void CheackonGround()
+	{
+		if (pos.y > 400.0f)
+		{
+			pos.y = 400.0f;
+			onGround = TRUE;
+			velocity.y = 0.0f;
+		}
+	}
+	
+	void Jump(char *keyBuf)
+	{
+		if (keyBuf[jump_key_] == 1 && player->onGround)
+		{
+			const VECTOR2D jumpVec = {0.0f, -15.0f };
+			player->velocity = jumpVec;
+			player->onGround = false;
+		}
 	}
 };
 
@@ -50,13 +75,32 @@ public:
 		num_ = 0;
 	}
 	
+	bool setJumpKey(unsigned int idx, unsigned char key)
+	{
+		if(num_ <= idx) return false; // 存在しないプレイヤーを指定
+		player_[idx].setJumpKey(key);
+		
+		return true;
+	}
+
 	void Update()
 	{
-		const VECTOR2D Gravity = {0.0f, 0.8f};
-		
 		for( auto&& player : player_ )
-			player.ApplyGravity(Gravity);
 			player.Move();
+		}
+	}
+
+	void Jump()
+	{
+		for( auto&& player : player_ )
+			player.Jump();
+		}
+	}
+
+	void CheackonGround()
+	{
+		for( auto&& player : player_ )
+			player.CheackonGround();
 		}
 	}
 };
@@ -162,11 +206,11 @@ void Attend(char *keyBuf, Player *player, Player *player2, Player *player3, int 
 }
 
 //時間計算
-void CheackTime(int start, int end, int interval, int *second)
+int CheackTime(int start)
 {
-	end = GetNowCount();
-	interval = end - start;
-	*second = interval / 1000.0;
+	int end = GetNowCount();
+	int interval = end - start;
+	return interval / 1000;
 }
 
 //スタートシーン
@@ -245,50 +289,6 @@ void SpeedChange(int *change, int *speed, int *score)
 	if (75 == (*score) && *change == TRUE)
 		*speed = 1;
 
-}
-
-//ボタン入力(ジャンプ)
-void CharaJump(char *keyBuf, VECTOR2D jumpVec, Player *player, Player *player2, Player *player3)
-{
-	if (keyBuf[KEY_INPUT_SPACE] == 1 && player->onGround == TRUE)
-	{
-		player->inerVec = jumpVec.y;
-		player->onGround = FALSE;
-	}
-	if (keyBuf[KEY_INPUT_1] == 1 && player2->onGround == TRUE)
-	{
-		player2->inerVec = jumpVec.y;
-		player2->onGround = FALSE;
-	}
-	if (keyBuf[KEY_INPUT_RETURN] == 1 && player3->onGround == TRUE)
-	{
-		player3->inerVec = jumpVec.y;
-		player3->onGround = FALSE;
-	}
-}
-
-//地面の判定
-void CheackonGround(Player *player, Player *player2, Player *player3)
-{
-
-	if (player->y > 400)
-	{
-		player->y = 400;
-		player->onGround = TRUE;
-		player->inerVec = 0;
-	}
-	if (player2->y > 400)
-	{
-		player2->y = 400;
-		player2->onGround = TRUE;
-		player2->inerVec = 0;
-	}
-	if (player3->y > 400)
-	{
-		player3->y = 400;
-		player3->onGround = TRUE;
-		player3->inerVec = 0;
-	}
 }
 
 //死亡判定
@@ -434,11 +434,14 @@ void GameOver(int *score, int *font1, int *font3, int *number1, int *start, int 
 int WINAPI WinMain(HINSTANCE hI, HINSTANCE hP, LPSTR lpC, int nC)
 {
 	PlayerList *players = new PlayerList(3);
-	VECTOR2D jumpVec = {0.0f, -15.0f };
 	int nawa[16], color[2], font1[15], font2[68], font3[42], font4[35], font5[25], number1[20], number2[6], bomb[16], title, attend, z;
-	int interval = 0, end = 0, start, second;
+	int start, time;
 	int anime = 0, change = TRUE, speed = 5, score = 0, scene = 1, check = 0;
 
+	players->setJumpKey(0, KEY_INPUT_SPACE);
+	players->setJumpKey(1, KEY_INPUT_1);
+	players->setJumpKey(2, KEY_INPUT_RETURN);
+	
 	srand((unsigned int)time(NULL));
 	ChangeWindowMode(TRUE);
 	if (DxLib_Init() == -1)
@@ -455,7 +458,7 @@ int WINAPI WinMain(HINSTANCE hI, HINSTANCE hP, LPSTR lpC, int nC)
 
 		if (scene == 3 || scene == 4 || scene == 5)
 		{
-			CheackTime(start, end, interval, &second);
+			time = CheackTime(start);
 			if (scene == 4)
 			{
 				CheackDeath(&player, &player2, &player3, &anime, &speed, &scene, &start);
@@ -463,14 +466,15 @@ int WINAPI WinMain(HINSTANCE hI, HINSTANCE hP, LPSTR lpC, int nC)
 				NawaMove(&anime, &change, &speed, &score);
 				SpeedChange(&change, &speed, &score);
 			}
-			CheackonGround(&player, &player2, &player3);
+			
+			players->CheackonGround();
 
 			players->Update();
-			CharaJump(keyBuf, jumpVec, &player, &player2, &player3);
+			players->Jump(keyBuf);
 
 			DrawScreen(player, &player2, &player3, color, nawa, &anime, &speed, bomb);
 			if (scene == 3)
-				StartScene(font3, font4, number1, number2, &second, &scene);
+				StartScene(font3, font4, number1, number2, &time, &scene);
 			if (scene == 5)
 				GameOver(&score, font1, font3, number1, &start, &scene, &check, &anime, &change, &speed, &player, &player2, &player3);
 		}
