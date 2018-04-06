@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include <time.h>
 
-struct CHARADATA
+class Player
 {
+private:
 	int x = 320;
 	int y = 400;
 	int life = 1;
@@ -13,7 +14,10 @@ struct CHARADATA
 	int on = 0;
 	int onGround = FALSE;
 	float inerVec = 0;
-}player, player2, player3;
+public:
+};
+
+Player　player, player2, player3;
 
 struct VECTOR2D
 {
@@ -21,7 +25,7 @@ struct VECTOR2D
 };
 
 //画像読み込み
-void LoadResource(int *nawa, CHARADATA *player, CHARADATA *player2, CHARADATA *player3, int *color, int *font1, int *font2, int *font3, int *font4, int *font5, int *number1, int *number2, int *bomb, int *z, int *title, int *attend)
+void LoadResource(int *nawa, Player *player, Player *player2, Player *player3, int *color, int *font1, int *font2, int *font3, int *font4, int *font5, int *number1, int *number2, int *bomb, int *z, int *title, int *attend)
 {
 	player->image[0] = LoadGraph(".\\media\\image\\1stand.png");
 	player->image[1] = LoadGraph(".\\media\\image\\1jump.png");
@@ -71,7 +75,7 @@ void Title(char *keyBuf, int *title, int *font2, int *z, int *start, int *scene)
 }
 
 //参加人数確認
-void Attend(char *keyBuf, CHARADATA *player, CHARADATA *player2, CHARADATA *player3, int *attend, int *font4, int *start, int *scene, int *check)
+void Attend(char *keyBuf, Player *player, Player *player2, Player *player3, int *attend, int *font4, int *start, int *scene, int *check)
 {
 	DrawGraph(0, 0, *attend, FALSE);
 
@@ -149,7 +153,7 @@ void StartScene(int *font3, int *font4, int *number1, int *number2, int *second,
 }
 
 //縦移動
-void CharaMove(CHARADATA *player, CHARADATA *player2, CHARADATA *player3)
+void CharaMove(Player *player, Player *player2, Player *player3)
 {
 	player->y += player->inerVec;
 	player2->y += player2->inerVec;
@@ -217,7 +221,7 @@ void SpeedChange(int *change, int *speed, int *score)
 }
 
 //ボタン入力(ジャンプ)
-void CharaJump(char *keyBuf, VECTOR2D jumpVec, CHARADATA *player, CHARADATA *player2, CHARADATA *player3)
+void CharaJump(char *keyBuf, VECTOR2D jumpVec, Player *player, Player *player2, Player *player3)
 {
 	GetHitKeyStateAll(keyBuf);
 	if (keyBuf[KEY_INPUT_SPACE] == 1 && player->onGround == TRUE)
@@ -238,7 +242,7 @@ void CharaJump(char *keyBuf, VECTOR2D jumpVec, CHARADATA *player, CHARADATA *pla
 }
 
 //地面の判定
-void CheackonGround(CHARADATA *player, CHARADATA *player2, CHARADATA *player3)
+void CheackonGround(Player *player, Player *player2, Player *player3)
 {
 
 	if (player->y > 400)
@@ -262,7 +266,7 @@ void CheackonGround(CHARADATA *player, CHARADATA *player2, CHARADATA *player3)
 }
 
 //死亡判定
-void CheackDeath(CHARADATA *player, CHARADATA *player2, CHARADATA *player3, int *anime, int *speed, int *scene, int *start)
+void CheackDeath(Player *player, Player *player2, Player *player3, int *anime, int *speed, int *scene, int *start)
 {
 	int getnow = (*anime);
 	if (player->onGround == TRUE)
@@ -295,7 +299,7 @@ void CheackDeath(CHARADATA *player, CHARADATA *player2, CHARADATA *player3, int 
 }
 
 //重力設定
-void Gravity(CHARADATA *player, CHARADATA *player2, CHARADATA *player3, VECTOR2D GravVec)
+void Gravity(Player *player, Player *player2, Player *player3, VECTOR2D GravVec)
 {
 	if (player->onGround == FALSE)
 		player->inerVec += GravVec.y;
@@ -306,7 +310,7 @@ void Gravity(CHARADATA *player, CHARADATA *player2, CHARADATA *player3, VECTOR2D
 }
 
 //画像表示
-void DrawScreen(CHARADATA player, CHARADATA *player2, CHARADATA *player3, int *color, int *nawa, int *anime, int *speed, int *bomb)
+void DrawScreen(Player player, Player *player2, Player *player3, int *color, int *nawa, int *anime, int *speed, int *bomb)
 {
 	//地面と背景の表示
 	DrawBox(0, 0, 640, 480, color[0], TRUE);
