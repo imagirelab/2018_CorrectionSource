@@ -12,9 +12,8 @@ VECTOR2D operator+(const VECTOR2D& u,const VECTOR2D& v);
 class Player
 {
 private:
-	VECTOR2D pos = {0.0f, 320.0f};
+	VECTOR2D pos = {320.0f, 320.0f};
 	VECTOR2D velocity = {0.0f, 0.0f};
-	int y = 400;
 	int life = 1;
 	int image[2];
 	int death = 0;
