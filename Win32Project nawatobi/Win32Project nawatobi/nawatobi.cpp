@@ -2,18 +2,18 @@
 #include <stdlib.h>
 #include <time.h>
 
-class VECTOR2D
+struct VECTOR2D
 {
-public:
-	float x = 0.0f;
-	float y = 0.0f;
+	float x;
+	float y;
 };
 VECTOR2D operator+(const VECTOR2D& u,const VECTOR2D& v);
 
 class Player
 {
 private:
-	int x = 320;
+	VECTOR2D pos = {0.0f, 320.0f};
+	VECTOR2D velocity = {0.0f, 0.0f};
 	int y = 400;
 	int life = 1;
 	int image[2];
@@ -21,14 +21,18 @@ private:
 	int in = 0;
 	int on = 0;
 	int onGround = FALSE;
-	VECTOR2D inerVec;
 public:
 	Player(){}
 	~Player(){}
 	
 	void ApplyGravity(const VECTOR2D &GravVec)
 	{
-		if (!onGround) inerVec += GravVec;
+		if (!onGround) velocity += GravVec;
+	}
+	
+	void Move()
+	{
+		player->y += player->velocity;
 	}
 };
 
@@ -47,10 +51,13 @@ public:
 		num_ = 0;
 	}
 	
-	void ApplyGravity(const VECTOR2D &GravVec)
+	void Update()
 	{
+		const VECTOR2D Gravity = {0.0f, 0.8f};
+		
 		for( auto&& player : player_ )
-			player.ApplyGravity(GravVec);
+			player.ApplyGravity(Gravity);
+			player.Move();
 		}
 	}
 };
@@ -100,7 +107,6 @@ void Title(char *keyBuf, int *title, int *font2, int *z, int *start, int *scene)
 		DrawRotaGraph(450, 355, 1, 0, *z, TRUE);
 	}
 
-	GetHitKeyStateAll(keyBuf);
 	if (keyBuf[KEY_INPUT_Z] == 1)
 		*scene = 2;
 }
@@ -110,7 +116,6 @@ void Attend(char *keyBuf, Player *player, Player *player2, Player *player3, int 
 {
 	DrawGraph(0, 0, *attend, FALSE);
 
-	GetHitKeyStateAll(keyBuf);
 	if (keyBuf[KEY_INPUT_SPACE] == 1)
 	{
 		player->in = 1;
@@ -183,14 +188,6 @@ void StartScene(int *font3, int *font4, int *number1, int *number2, int *second,
 		*scene = 4;
 }
 
-//縦移動
-void CharaMove(Player *player, Player *player2, Player *player3)
-{
-	player->y += player->inerVec;
-	player2->y += player2->inerVec;
-	player3->y += player3->inerVec;
-}
-
 //縄の挙動
 void NawaMove(int *anime, int *change, int *speed, int *score)
 {
@@ -254,7 +251,6 @@ void SpeedChange(int *change, int *speed, int *score)
 //ボタン入力(ジャンプ)
 void CharaJump(char *keyBuf, VECTOR2D jumpVec, Player *player, Player *player2, Player *player3)
 {
-	GetHitKeyStateAll(keyBuf);
 	if (keyBuf[KEY_INPUT_SPACE] == 1 && player->onGround == TRUE)
 	{
 		player->inerVec = jumpVec.y;
@@ -439,12 +435,10 @@ void GameOver(int *score, int *font1, int *font3, int *number1, int *start, int 
 int WINAPI WinMain(HINSTANCE hI, HINSTANCE hP, LPSTR lpC, int nC)
 {
 	PlayerList *players = new PlayerList(3);
-	VECTOR2D jumpVec = { -15 };
-	VECTOR2D GraVec = { 0.8 };
+	VECTOR2D jumpVec = {0.0f, -15.0f };
 	int nawa[16], color[2], font1[15], font2[68], font3[42], font4[35], font5[25], number1[20], number2[6], bomb[16], title, attend, z;
 	int interval = 0, end = 0, start, second;
 	int anime = 0, change = TRUE, speed = 5, score = 0, scene = 1, check = 0;
-	char keyBuf[256];
 
 	srand((unsigned int)time(NULL));
 	ChangeWindowMode(TRUE);
@@ -457,6 +451,9 @@ int WINAPI WinMain(HINSTANCE hI, HINSTANCE hP, LPSTR lpC, int nC)
 
 	while (ProcessMessage() == 0)
 	{
+		char keyBuf[256];
+		GetHitKeyStateAll(keyBuf);
+
 		if (scene == 3 || scene == 4 || scene == 5)
 		{
 			CheackTime(start, end, interval, &second);
@@ -469,9 +466,7 @@ int WINAPI WinMain(HINSTANCE hI, HINSTANCE hP, LPSTR lpC, int nC)
 			}
 			CheackonGround(&player, &player2, &player3);
 
-			players->ApplyGravity();
-			Gravity(&player, &player2, &player3, GraVec);
-			CharaMove(&player, &player2, &player3);
+			players->Update();
 			CharaJump(keyBuf, jumpVec, &player, &player2, &player3);
 
 			DrawScreen(player, &player2, &player3, color, nawa, &anime, &speed, bomb);
