@@ -15,6 +15,8 @@ private:
 	int onGround = FALSE;
 	float inerVec = 0;
 public:
+	Player(){}
+	~Player(){}
 };
 
 Player　player, player2, player3;
