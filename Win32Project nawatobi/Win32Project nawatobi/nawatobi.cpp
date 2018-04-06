@@ -20,8 +20,8 @@ struct VECTOR2D
 	float y;
 };
 
-//‰æ‘œ“Ç‚İ‚İ
-void LoadResource(int *nawa, struct CHARADATA *player, CHARADATA *player2, CHARADATA *player3, int *color, int *font1, int *font2, int *font3, int *font4, int *font5, int *number1, int *number2, int *bomb, int *z, int *title, int *attend)
+//ç”»åƒèª­ã¿è¾¼ã¿
+void LoadResource(int *nawa, CHARADATA *player, CHARADATA *player2, CHARADATA *player3, int *color, int *font1, int *font2, int *font3, int *font4, int *font5, int *number1, int *number2, int *bomb, int *z, int *title, int *attend)
 {
 	player->image[0] = LoadGraph(".\\media\\image\\1stand.png");
 	player->image[1] = LoadGraph(".\\media\\image\\1jump.png");
@@ -49,7 +49,7 @@ void LoadResource(int *nawa, struct CHARADATA *player, CHARADATA *player2, CHARA
 	color[1] = GetColor(0, 255, 0);
 }
 
-//ƒ^ƒCƒgƒ‹
+//ã‚¿ã‚¤ãƒˆãƒ«
 void Title(char *keyBuf, int *title, int *font2, int *z, int *start, int *scene)
 {
 
@@ -70,8 +70,8 @@ void Title(char *keyBuf, int *title, int *font2, int *z, int *start, int *scene)
 		*scene = 2;
 }
 
-//Q‰Ál”Šm”F
-void Attend(char *keyBuf, struct CHARADATA *player, CHARADATA *player2, CHARADATA *player3, int *attend, int *font4, int *start, int *scene, int *check)
+//å‚åŠ äººæ•°ç¢ºèª
+void Attend(char *keyBuf, CHARADATA *player, CHARADATA *player2, CHARADATA *player3, int *attend, int *font4, int *start, int *scene, int *check)
 {
 	DrawGraph(0, 0, *attend, FALSE);
 
@@ -122,7 +122,7 @@ void Attend(char *keyBuf, struct CHARADATA *player, CHARADATA *player2, CHARADAT
 	}
 }
 
-//ŠÔŒvZ
+//æ™‚é–“è¨ˆç®—
 void CheackTime(int start, int end, int interval, int *second)
 {
 	end = GetNowCount();
@@ -130,7 +130,7 @@ void CheackTime(int start, int end, int interval, int *second)
 	*second = interval / 1000.0;
 }
 
-//ƒXƒ^[ƒgƒV[ƒ“
+//ã‚¹ã‚¿ãƒ¼ãƒˆã‚·ãƒ¼ãƒ³
 void StartScene(int *font3, int *font4, int *number1, int *number2, int *second, int *scene)
 {
 	int i = 0;
@@ -148,20 +148,20 @@ void StartScene(int *font3, int *font4, int *number1, int *number2, int *second,
 		*scene = 4;
 }
 
-//cˆÚ“®
-void CharaMove(struct CHARADATA *player, CHARADATA *player2, CHARADATA *player3)
+//ç¸¦ç§»å‹•
+void CharaMove(CHARADATA *player, CHARADATA *player2, CHARADATA *player3)
 {
 	player->y += player->inerVec;
 	player2->y += player2->inerVec;
 	player3->y += player3->inerVec;
 }
 
-//“ê‚Ì‹““®
+//ç¸„ã®æŒ™å‹•
 void NawaMove(int *anime, int *change, int *speed, int *score)
 {
 	int i;
 
-	//“ê‚ÌŠî–{“®ì
+	//ç¸„ã®åŸºæœ¬å‹•ä½œ
 	if (*change == TRUE)
 	{
 		(*anime)++;
@@ -182,7 +182,7 @@ void NawaMove(int *anime, int *change, int *speed, int *score)
 	}
 }
 
-//ƒXƒs[ƒh•Ï‰»
+//ã‚¹ãƒ”ãƒ¼ãƒ‰å¤‰åŒ–
 void SpeedChange(int *change, int *speed, int *score)
 {
 	if (5 == (*score) && *change == TRUE)
@@ -216,8 +216,8 @@ void SpeedChange(int *change, int *speed, int *score)
 
 }
 
-//ƒ{ƒ^ƒ““ü—Í(ƒWƒƒƒ“ƒv)
-void CharaJump(char *keyBuf, struct VECTOR2D jumpVec, struct CHARADATA *player, CHARADATA *player2, CHARADATA *player3)
+//ãƒœã‚¿ãƒ³å…¥åŠ›(ã‚¸ãƒ£ãƒ³ãƒ—)
+void CharaJump(char *keyBuf, VECTOR2D jumpVec, CHARADATA *player, CHARADATA *player2, CHARADATA *player3)
 {
 	GetHitKeyStateAll(keyBuf);
 	if (keyBuf[KEY_INPUT_SPACE] == 1 && player->onGround == TRUE)
@@ -237,8 +237,8 @@ void CharaJump(char *keyBuf, struct VECTOR2D jumpVec, struct CHARADATA *player, 
 	}
 }
 
-//’n–Ê‚Ì”»’è
-void CheackonGround(struct CHARADATA *player, CHARADATA *player2, CHARADATA *player3)
+//åœ°é¢ã®åˆ¤å®š
+void CheackonGround(CHARADATA *player, CHARADATA *player2, CHARADATA *player3)
 {
 
 	if (player->y > 400)
@@ -261,8 +261,8 @@ void CheackonGround(struct CHARADATA *player, CHARADATA *player2, CHARADATA *pla
 	}
 }
 
-//€–S”»’è
-void CheackDeath(struct CHARADATA *player, CHARADATA *player2, CHARADATA *player3, int *anime, int *speed, int *scene, int *start)
+//æ­»äº¡åˆ¤å®š
+void CheackDeath(CHARADATA *player, CHARADATA *player2, CHARADATA *player3, int *anime, int *speed, int *scene, int *start)
 {
 	int getnow = (*anime);
 	if (player->onGround == TRUE)
@@ -294,8 +294,8 @@ void CheackDeath(struct CHARADATA *player, CHARADATA *player2, CHARADATA *player
 	}
 }
 
-//d—Íİ’è
-void Gravity(struct CHARADATA *player, CHARADATA *player2, CHARADATA *player3, struct VECTOR2D GravVec)
+//é‡åŠ›è¨­å®š
+void Gravity(CHARADATA *player, CHARADATA *player2, CHARADATA *player3, VECTOR2D GravVec)
 {
 	if (player->onGround == FALSE)
 		player->inerVec += GravVec.y;
@@ -305,14 +305,14 @@ void Gravity(struct CHARADATA *player, CHARADATA *player2, CHARADATA *player3, s
 		player3->inerVec += GravVec.y;
 }
 
-//‰æ‘œ•\¦
-void DrawScreen(struct CHARADATA player, CHARADATA *player2, CHARADATA *player3, int *color, int *nawa, int *anime, int *speed, int *bomb)
+//ç”»åƒè¡¨ç¤º
+void DrawScreen(CHARADATA player, CHARADATA *player2, CHARADATA *player3, int *color, int *nawa, int *anime, int *speed, int *bomb)
 {
-	//’n–Ê‚Æ”wŒi‚Ì•\¦
+	//åœ°é¢ã¨èƒŒæ™¯ã®è¡¨ç¤º
 	DrawBox(0, 0, 640, 480, color[0], TRUE);
 	DrawBox(0, 400, 640, 480, color[1], TRUE);
 
-	//ålŒö‚Ì•\¦
+	//ä¸»äººå…¬ã®è¡¨ç¤º
 	if (player.in == 1)
 	{
 		if (player.life == 1)
@@ -362,11 +362,11 @@ void DrawScreen(struct CHARADATA player, CHARADATA *player2, CHARADATA *player3,
 		}
 	}
 
-	//‚È‚í‚Ì•\¦
+	//ãªã‚ã®è¡¨ç¤º
 	DrawGraph(27, 235, nawa[(*anime) / (*speed)], TRUE);
 }
 
-//ƒQ[ƒ€ƒI[ƒo[
+//ã‚²ãƒ¼ãƒ ã‚ªãƒ¼ãƒãƒ¼
 void GameOver(int *score, int *font1, int *font3, int *number1, int *start, int *scene, int *check, int *anime, int *change, int *speed, struct CHARADATA *player, CHARADATA *player2, CHARADATA *player3)
 {
 	int i, j, end, second;
@@ -411,11 +411,11 @@ void GameOver(int *score, int *font1, int *font3, int *number1, int *start, int 
 	}
 }
 
-//ƒ\[ƒX–{•¶
+//ã‚½ãƒ¼ã‚¹æœ¬æ–‡
 int WINAPI WinMain(HINSTANCE hI, HINSTANCE hP, LPSTR lpC, int nC)
 {
-	struct VECTOR2D jumpVec = { -15 };
-	struct VECTOR2D GraVec = { 0.8 };
+	VECTOR2D jumpVec = { -15 };
+	VECTOR2D GraVec = { 0.8 };
 	int nawa[16], color[2], font1[15], font2[68], font3[42], font4[35], font5[25], number1[20], number2[6], bomb[16], title, attend, z;
 	int interval = 0, end = 0, start, second;
 	int anime = 0, change = TRUE, speed = 5, score = 0, scene = 1, check = 0;
