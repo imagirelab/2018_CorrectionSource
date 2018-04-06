@@ -19,6 +19,22 @@ public:
 	~Player(){}
 };
 
+class PlayerList
+{
+private:
+	int num_ = 0;
+	Player *player_=nullptr;
+public:
+	PlayerList(int num){
+		num_ = num;
+		player_ = new Player[num];
+	}
+	~PlayerList(){
+		delete[] player_;
+		num_ = 0;
+	}
+};
+
 Player　player, player2, player3;
 
 struct VECTOR2D
@@ -420,6 +436,7 @@ void GameOver(int *score, int *font1, int *font3, int *number1, int *start, int 
 //ソース本文
 int WINAPI WinMain(HINSTANCE hI, HINSTANCE hP, LPSTR lpC, int nC)
 {
+	PlayerList players = new PlayerList(3);
 	VECTOR2D jumpVec = { -15 };
 	VECTOR2D GraVec = { 0.8 };
 	int nawa[16], color[2], font1[15], font2[68], font3[42], font4[35], font5[25], number1[20], number2[6], bomb[16], title, attend, z;
@@ -470,5 +487,7 @@ int WINAPI WinMain(HINSTANCE hI, HINSTANCE hP, LPSTR lpC, int nC)
 			break;
 	}
 	DxLib_End();
+	
+	delete players;
 	return 0;
 }
