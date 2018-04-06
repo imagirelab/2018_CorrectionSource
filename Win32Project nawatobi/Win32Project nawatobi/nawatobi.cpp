@@ -35,10 +35,9 @@ public:
 	}
 };
 
-Player　player, player2, player3;
-
 struct VECTOR2D
 {
+	float x;
 	float y;
 };
 
