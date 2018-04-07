@@ -3,7 +3,6 @@
 #include <time.h>
 
 #define SAFE_DELETE(p) if(p) delete (p); (p)=nullptr;
-#define SAFE_DELETE_ARRAY(p) if(p) delete[] (p); (p)=nullptr;
 
 // 画像を指定するID
 enum class RENDER_IMAGE{
@@ -46,19 +45,10 @@ enum class RENDER_COLOR{
 	GROUND = 1,
 };
 
-
-struct VECTOR2D
-{
-	float x;
-	float y;
-};
-VECTOR2D operator+(const VECTOR2D& u, const VECTOR2D& v);
-
 //時間計算
 int CheackTime(int start)
 {
-	int end = GetNowCount();
-	int interval = end - start;
+	int interval = GetNowCount() - start;
 	return interval / 1000;
 }
 
@@ -93,7 +83,6 @@ public:
 		LoadDivGraph(".\\media\\image\\Z.jpg", 1, 1, 1, 47, 51, image_+RENDER_IMAGE::Z);
 		LoadDivGraph(".\\media\\image\\title.jpg", 1, 1, 1, 640, 480, image_+RENDER_IMAGE::TITLE));
 		LoadDivGraph(".\\media\\image\\attend.png", 1, 1, 1, 640, 480, image_+RENDER_IMAGE::ATTEND));
-
 
 		color_[0] = GetColor(255, 255, 255);// BG
 		color_[1] = GetColor(0, 255, 0); // GROUND
@@ -131,7 +120,7 @@ private:
 		};
 
 		int rank = score / 5;
-		if(sizeof(table)/sizeof(table[0]) <= rank) speed_ = 1;
+		if(sizeof(table)/sizeof(table[0]) <= rank) speed_ = 1;// テーブルのスコアを超えていたら最高速
 
 		speed_ = table[rank];
 	}	
@@ -155,7 +144,7 @@ public:
 		if (change_)
 		{
 			anime_++;
-			if (anime_> (speed_ * 16) - 2)
+			if (anime_> (speed_ * 16) - 2)// 意味が分からない…
 			{
 				change_ = FALSE;
 				is_clear = true;
@@ -172,6 +161,11 @@ public:
 		return is_clear;
 	}
 	
+	bool IsHitTime()
+	{
+		return (speed_ * 16) - 10 < anime_;// 意味が分からない…
+	}
+	
 	void Draw(Renderer &render)
 	{
 		render.Draw(27, 235, RENDER_IMAGE::NAWA, anime_ / speed_);
@@ -179,42 +173,53 @@ public:
 
 };
 
+struct INIT_PLAYER
+{
+	int x;					// 横位置
+	int image_idx;			// 表示用の番号
+	unsigned char jump_key;	// 押すとジャンプするキー
+};
+
 class Player
 {
 private:
-	VECTOR2D pos = {320.0f, 320.0f};
-	VECTOR2D velocity = {0.0f, 0.0f};
-	bool attend_ = false;
-	int life = 1;
-	int death = 0;
-	bool onGround = FALSE;
+	int x_ = 320;
+	float y_ = 320.0f;// 加速度運動をするので、浮動小数点で管理
+	float velocity_y_ = 0.0f;
+	bool attend_;
+	int life_ = 1;
+	int death_cnt_ = 0;
+	bool onGround_ = false;
 	unsigned char jump_key_ = KEY_INPUT_SPACE;
-	int x_offset_ = 0;
+	
+	int image_idx_ = 0;
 public:
 	Player(){}
 	~Player(){}
 	
-	void setJumpKey(unsigned char key)
-	{
-		jump_key_ = key;
-	}
-	void setXoffset(int offset)
-	{
-		x_offset_ = offset;
-	}
-
 	bool has_left() const
 	{
-		return (death < 17);
+		return (death_cnt_ <= 16);
 	}
 	
+	// 一度だけの初期化
+	void SetUp(const INIT_PLAYER &data)
+	{
+		x_ = data.x;
+		image_idx_ = data.image_idx;
+		jump_key_ = data.jump_key;
+		
+		Initialize();
+	}
+	
+	// ゲームごとの初期化
 	void Initialize()
 	{
-		life = 1;// できればローカル変数と区別がつかない名前は避ける
-		death = 0;// できればローカル変数と区別がつかない名前は避ける
+		life_ = 1;
+		death_cnt_ = 0;
 		attend_ = false;
-		onGround = FALSE;// できればローカル変数と区別がつかない名前は避ける
-		velocity_ = {0.0f, 0.0f};
+		onGround_ = FALSE;
+		velocity_y_ = 0.0f;
 	}
 	
 	bool CheckAttend(const char *keyBuf)
@@ -229,61 +234,74 @@ public:
 	
 	void CheackonGround()
 	{
-		if (pos.y > 400.0f)
+		const float max_height = 400.0f;
+		
+		if (pos.y > max_height)
 		{
-			pos.y = 400.0f;
-			onGround = TRUE;
-			velocity_.y = 0.0f;
+			pos.y = max_height;
+			onGround_ = TRUE;
+			velocity_y_ = 0.0f;
 		}
+	}
+	
+	bool ChackFailed()
+	{
+		if (!attend_) return false;
+
+		if (onGround_)
+		{
+			life_ = 0;
+			return true;
+		}
+		
+		return false;
 	}
 	
 	void CheckAlive()
 	{
 		if (!attend_) returm;
 		
-		if (attend_ && 0 == life){
-			death++;
+		if (attend_ && life_ == 0){
+			death_cnt_++;
 		}
-		
-}
+	}
 	
 	void Move()
 	{
 		if (!attend_) returm;
 
-		const VECTOR2D Gravity = {0.0f, 0.8f};
-		if (!onGround) velocity_ += GravVec;
+		if (!onGround_) velocity_y_ += 0.8f;// 重力
 		
-		player->y += player->velocity_;
+		y_ += velocity_y_;
 	}
 	
 	void Jump(const char *keyBuf)
 	{
-		if (!attend_) returm;
+		if (!attend_) return;
 
-		if (keyBuf[jump_key_] == 1 && player->onGround)
+		if (keyBuf[jump_key_] == 1 && onGround_)
 		{
-			const VECTOR2D jumpVec = {0.0f, -15.0f };
-			velocity = jumpVec;
-			onGround = false;
+			velocity_y_ = -15.0f;
+			onGround_ = false;
 		}
 	}
 
-	void Draw(Renderer &render, RENDER_IMAGE image)
+	void Draw(Renderer &render)
 	{
 		if (!attend_) return;
 
-		if (life == 1)
+		if (life_ == 1)
 		{
-			bool is_turn = (onGround);
-			render.Draw(x + x_offset_, y - 100, image, is_turn ? 0 : 1, is_turn);
+			bool is_turn = onGround_;
+			render.Draw(x_, y_ - 100, image_idx_, is_turn ? 0 : 1, is_turn);
 		}
 		else
 		{
 			if (has_left()){
-				render.Draw(x + x_offset_, y - 100, RENDER_IMAGE::BOMB, player1->death);
+				render.Draw(x_, y_ - 100, RENDER_IMAGE::BOMB, death_cnt_);
 			}
 		}
+	}
 };
 
 class PlayerList
@@ -301,20 +319,12 @@ public:
 		num_ = 0;
 	}
 	
-	bool setJumpKey(unsigned int idx, unsigned char key)
+	void SetUp(const PLAYER_DATA *a_player_data)
 	{
-		if(num_ <= idx) return false; // 存在しないプレイヤーを指定
-		player_[idx].setJumpKey(key);
-		
-		return true;
-	}
-	
-	bool setXoffset(unsigned int idx, int offset)
-	{
-		if(num_ <= idx) return false; // 存在しないプレイヤーを指定
-		player_[idx].setXoffset(offset);
-		
-		return true;
+		for( int i = 0; i < num_; i++ )
+		{
+			player_[i].SetUp(a_player_data[i]);
+		}
 	}
 
 	void Initialize()
@@ -362,6 +372,26 @@ public:
 		
 		return flag;
 	}
+
+	bool ChackFailed()
+	{
+		bool failed = false;
+		
+		for( auto&& player : player_ )
+		{
+			failed |= player.ChackFailed();
+		}
+		
+		return failed;
+	}
+	
+	void Draw(Renderer &render)
+	{
+		for( int i = 0; i < num_; i++ )
+		{
+			player_[i].Draw(render, i);
+		}
+	}
 };
 
 class Game
@@ -374,14 +404,22 @@ public:
 	Game(){
 		players_ = new PlayerList(3);
 	}
+	
 	~Game(){
 		SAFE_DELETE(players_);
 	}
 	
-
+	// 一度だけの初期化
+	void SetUp(const PLAYER_DATA *a_player_data)
+	{
+		players_.SetUp(a_player_data);
+	}
+	
+	// ゲームごとの初期化
 	void Initialize()
 	{
 		score_ = 0;
+		players_.Initialize();
 		nawa_.Initialize();
 	}
 	
@@ -390,7 +428,14 @@ public:
 		return players_->CheckAttend(keyBuf);
 	}
 
-	void Update(Game &game, const char *keyBuf) 
+	bool ChackFailed()
+	{
+		if(!nawa_.IsHitTime()) return false;
+
+		return players_->ChackFailed();
+	}
+	
+	void Update(const char *keyBuf) 
 	{
 		players_->CheackonGround();
 
@@ -398,10 +443,19 @@ public:
 		players_->Jump(keyBuf);
 		players_->CheckAlive();
 	}
+	
+	void Draw(Renderer &render)
+	{
+		//主人公の表示
+		players_->Draw(render);
+			
+		nawa_.Draw(render);
+	}
 };
 
 
-enum class SCENE_NAME{
+enum class SCENE_NAME
+{
 	TITLE = 0,
 	ATTEND,
 	START,
@@ -466,11 +520,19 @@ public:
 	{
 		game.Initialize();
 	}
+	
 	SCENE_NAME Update(Game &game, Renderer &render, const char *keyBuf) override 
 	{
-		// char *keyBuf, Playerlist *players, int *attend, int *font4, int *scene)
+		SCENE_NAME ret = SCENE_NAME::INVALID;
+		
 		bool attended = game.CheckAttend(keyBuf);
-
+		
+		bool is_all_attended = (attended & 0x7) == 0x7;
+		if (keyBuf[KEY_INPUT_Z] == 1 && is_all_attended)
+		{
+			ret = SCENE_NAME::START;
+		}
+		
 		render.Draw(0, 0, RENDER_IMAGE::ATTEND);
 
 		if (attended & (1<<0))
@@ -489,13 +551,7 @@ public:
 			render.Draw(447, 300,RENDER_IMAGE::PLAYER3, 0);
 		}
 
-		bool is_all_attended = (attended & 0x7) == 0x7;
-		if (keyBuf[KEY_INPUT_Z] == 1 && is_all_attended)
-		{
-			return SCENE_NAME::START;
-		}
-		
-		return SCENE_NAME::INVALID;
+		return ret;
 	}
 };
 
@@ -509,13 +565,8 @@ protected:
 		//地面と背景の表示
 		render.DrawBox(0, 0, 640, 480, RENDER_COLOR::BG);
 		render.DrawBox(0, 400, 640, 480, RENDER_COLOR::GROUND, TRUE);
-///////////////////////////////////////// todo
-		//主人公の表示
-		player1->Draw(render, RENDER_IMAGE::PLAYER1);
-		player2->Draw(render, RENDER_IMAGE::PLAYER2);
-		player3->Draw(render, RENDER_IMAGE::PLAYER3);
 		
-		nawa_.Draw(render);
+		game.Draw(render);
 	}
 
 public:
@@ -561,6 +612,7 @@ public:
 			render.Draw(310, 230, RENDER_IMAGE::FONT3, 25);
 			render.Draw(460, 230, RENDER_IMAGE::NUMBER1, 10);
 		}
+		
 		return SCENE_NAME::INVALID;
 	}
 };
@@ -576,35 +628,11 @@ public:
 	{
 		SCENE_NAME ret = SCENE_NAME::INVALID;
 		
-///////////////////////////////////////// todo
-		int getnow = (*anime);
-		if (player1->onGround == TRUE)
-		{
-			if (((*speed) * 16) - 10 < getnow && player1->attend_ == 1)
-			{
-				player1->life = 0;
-				ret = SCENE_NAME::GAMEOVER;
-			}
-		}
-		if (player2->onGround == TRUE)
-		{
-			if (((*speed) * 16) - 10 < getnow && player2->attend_ == 1)
-			{
-				player2->life = 0;
-				ret = SCENE_NAME::GAMEOVER;
-			}
-		}
-		if (player3->onGround == TRUE)
-		{
-			if (((*speed) * 16) - 10 < getnow && player3->attend_ == 1)
-			{
-				player3->life = 0;
-				ret = SCENE_NAME::GAMEOVER;
-			}
-		}
+		bool failed = game.ChackFailed();
+		if(failed) {ret = SCENE_NAME::GAMEOVER;}
 
 		bool is_clear = nawa_.Update();
-		if(is_clear) score++;
+		if(is_clear) {score++;}
 
 		FSM_IN_GAME::Updada(players, render, keyBuf);
 		
@@ -626,20 +654,22 @@ public:
 	
 	SCENE_NAME Update(Gmae &game, Renderer &render, const char *keyBuf) override 
 	{
-		FSM_IN_GAME::Updada();		
+		SCENE_NAME ret = SCENE_NAME::INVALID;
+		
+		FSM_IN_GAME::Updada();
+		
+		int time = CheackTime(start_);
+		if (time > 20)
+		{
+			ret SCENE_NAME::TITLE;
+		}
 		
 		render.Draw(310, 150, RENDER_IMAGE::FONT1, 3);
 		render.Draw(200, 230, RENDER_IMAGE::FONT3, 17);
 		render.Draw(450, 230, RENDER_IMAGE::NUMBER1, score / 10);
 		render.Draw(510, 230, RENDER_IMAGE::NUMBER1, score % 10);
 
-		int time = CheackTime(start_);
-		if (time > 20)
-		{
-			return SCENE_NAME::TITLE;
-		}
-		
-		return SCENE_NAME::INVALID;
+		return ret;
 	}
 };
 
@@ -673,6 +703,7 @@ public:
 	{
 		SCENE_NAME next = current_->Update(players, render, keyBuf);
 		
+		// 返り値に SCENE_NAME::INVALID 以外が来たら切り替え
 		if(next != SCENE_NAME::INVALID && next < SCENE_NAME::NUM){
 			current_ = fsm_[next];
 			current_->Initialize();
@@ -692,19 +723,16 @@ int WINAPI WinMain(HINSTANCE hI, HINSTANCE hP, LPSTR lpC, int nC)
 		return -1;
 	SetDrawScreen(DX_SCREEN_BACK);
 
+	const PLAYER_DATA player_data[] = {
+		{RENDER_IMAGE::PLAYER1, 320 -33, KEY_INPUT_SPACE},
+		{RENDER_IMAGE::PLAYER2, 320-131, KEY_INPUT_1},
+		{RENDER_IMAGE::PLAYER3, 320 +65, KEY_INPUT_RETURN},
+	};
+	
 	renderer.Initialie();
-	game.Initialize();
+	game.SetUp(player_data);
 	scene.Initialize();
 
-	// 入力設定
-	players->setJumpKey(0, KEY_INPUT_SPACE);
-	players->setJumpKey(1, KEY_INPUT_1);
-	players->setJumpKey(2, KEY_INPUT_RETURN);
-
-	players->setXoffset(0, -33);
-	players->setXoffset(1, -131);
-	players->setXoffset(2, +65);
-	
 	while (ProcessMessage() == 0)
 	{
 		char keyBuf[256];
@@ -716,8 +744,9 @@ int WINAPI WinMain(HINSTANCE hI, HINSTANCE hP, LPSTR lpC, int nC)
 		
 		if (keyBuf[KEY_INPUT_ESCAPE]) break;
 	}
+
 	DxLib_End();
-	
 	delete players;
+	
 	return 0;
 }
