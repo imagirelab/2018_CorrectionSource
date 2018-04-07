@@ -2,467 +2,751 @@
 #include <stdlib.h>
 #include <time.h>
 
-struct CHARADATA
-{
-	int x = 320;
-	int y = 400;
-	int life = 1;
-	int image[2];
-	int death = 0;
-	int in = 0;
-	int on = 0;
-	int onGround = FALSE;
-	float inerVec = 0;
-}player, player2, player3;
+#define SAFE_DELETE(p) if(p) delete (p); (p)=nullptr;
 
-struct VECTOR2D
-{
-	float y;
+// ÁîªÂÉè„ÇíÊåáÂÆö„Åô„ÇãID
+enum class RENDER_IMAGE{
+	PLAYER1 = 0;
+	PLAYER1_NUM = 2;
+	PLAYER2 = PLAYER1 + PLAYER1_NUM;
+	PLAYER2_NUM = 2;
+	PLAYER3 = PLAYER2 + PLAYER2_NUM;
+	PLAYER3_NUM = 2;
+	NAWA = PLAYER3 + PLAYER3_NUM;
+	NAWA_NUM = 16;
+	FONT1 = NAWA + NAWA_NUM;
+	FONT1_NUM = 15;
+	FONT2 = FONT1 + FONT1_NUM;
+	FONT2_NUM = 68;
+	FONT3 = FONT2 + FONT2_NUM;
+	FONT3_NUM = 42;
+	FONT4 = FONT3 + FONT3_NUM;
+	FONT4_NUM = 35;
+	FONT5 = FONT4 + FONT4_NUM;
+	FONT5_NUM = 25;
+	NUMBER1 = FONT5 + FONT5_NUM;
+	NUMBER1_NUM = 20;
+	NUMBER2 = NUMBER1 + NUMBER1_NUM;
+	NUMBER2_NUM = 6;
+	BOMB = NUMBER2 + NUMBER2_NUM;
+	BOMB_NUM = 16;
+	TITLE = BOMB + BOMB_NUM;
+	TITLE_NUM = 1;
+	ATTEND = TITLE + TITLE_NUM;
+	ATTEND_NUM = 1;
+	Z = ATTEND + ATTEND_NUM;
+	Z_NUM = 1;
+	
+	IMAGE_NUM = Z + Z_NUM;
 };
 
-//âÊëúì«Ç›çûÇ›
-void LoadResource(int *nawa, struct CHARADATA *player, CHARADATA *player2, CHARADATA *player3, int *color, int *font1, int *font2, int *font3, int *font4, int *font5, int *number1, int *number2, int *bomb, int *z, int *title, int *attend)
+enum class RENDER_COLOR{
+	BG = 0,
+	GROUND = 1,
+};
+
+//ÊôÇÈñìË®àÁÆó
+int CheackTime(int start)
 {
-	player->image[0] = LoadGraph(".\\media\\image\\1stand.png");
-	player->image[1] = LoadGraph(".\\media\\image\\1jump.png");
-	player2->image[0] = LoadGraph(".\\media\\image\\2stand.png");
-	player2->image[1] = LoadGraph(".\\media\\image\\2jump.png");
-	player3->image[0] = LoadGraph(".\\media\\image\\3stand.png");
-	player3->image[1] = LoadGraph(".\\media\\image\\3jump.png");
-
-	LoadDivGraph(".\\media\\image\\nawa.png", 16, 1, 16, 585, 172.625, nawa);
-	LoadDivGraph(".\\media\\image\\font.png", 15, 1, 15, 600, 60, font1);
-	LoadDivGraph(".\\media\\image\\font2.png", 68, 4, 17, 240, 60, font2);
-	LoadDivGraph(".\\media\\image\\font3.png", 42, 3, 14, 300, 60, font3);
-	LoadDivGraph(".\\media\\image\\font4.png", 35, 5, 7, 120, 60, font4);
-	LoadDivGraph(".\\media\\image\\font5.png", 25, 5, 5, 180, 60, font5);
-	LoadDivGraph(".\\media\\image\\number.png", 20, 10, 2, 60, 60, number1);
-	LoadDivGraph(".\\media\\image\\number2.png", 6, 6, 1, 30, 60, number2);
-	LoadDivGraph(".\\media\\image\\bomb.jpg", 16, 8, 2, 128, 128, bomb);
-	LoadDivGraph(".\\media\\image\\Z.jpg", 1, 1, 1, 47, 51, z);
-
-	LoadDivGraph(".\\media\\image\\title.jpg", 1, 1, 1, 640, 480, title);
-	LoadDivGraph(".\\media\\image\\attend.png", 1, 1, 1, 640, 480, attend);
-
-
-	color[0] = GetColor(255, 255, 255);
-	color[1] = GetColor(0, 255, 0);
+	int interval = GetNowCount() - start;
+	return interval / 1000;
 }
 
-//É^ÉCÉgÉã
-void Title(char *keyBuf, int *title, int *font2, int *z, int *start, int *scene)
+class Renderer
 {
-
-	int end, second;
-	DrawGraph(0, 0, *title, FALSE);
-
-	end = GetNowCount();
-	second = (end - *start) / 1000.0;
-
-	if (second % 2 == 0)
+private:
+	int image[RENDER_IMAGE::IMAGE_NUM];
+	int color[2];
+public:
+	renderer(){}
+	~renderer(){}
+	
+	void Initialize()
 	{
-		DrawRotaGraph(300, 360, 1, 0, font2[14], TRUE);
-		DrawRotaGraph(450, 355, 1, 0, *z, TRUE);
+		//ÁîªÂÉèË™≠„ÅøËæº„Åø
+		image_[RENDER_IMAGE::PLAYER1 + 0] = LoadGraph(".\\media\\image\\1stand.png");
+		image_[RENDER_IMAGE::PLAYER1 + 1] = LoadGraph(".\\media\\image\\1jump.png");
+		image_[RENDER_IMAGE::PLAYER1 + 0] = LoadGraph(".\\media\\image\\2stand.png");
+		image_[RENDER_IMAGE::PLAYER2 + 1] = LoadGraph(".\\media\\image\\2jump.png");
+		image_[RENDER_IMAGE::PLAYER3 + 0] = LoadGraph(".\\media\\image\\3stand.png");
+		image_[RENDER_IMAGE::PLAYER3 + 1] = LoadGraph(".\\media\\image\\3jump.png");
+
+		LoadDivGraph(".\\media\\image\\nawa.png", 16, 1, 16, 585, 172.625, image_+RENDER_IMAGE::NAWA);
+		LoadDivGraph(".\\media\\image\\font.png", 15, 1, 15, 600, 60, image_+RENDER_IMAGE::FONT1);
+		LoadDivGraph(".\\media\\image\\font2.png", 68, 4, 17, 240, 60, image_+RENDER_IMAGE::FONT2);
+		LoadDivGraph(".\\media\\image\\font3.png", 42, 3, 14, 300, 60, image_+RENDER_IMAGE::FONT3);
+		LoadDivGraph(".\\media\\image\\font4.png", 35, 5, 7, 120, 60, image_+RENDER_IMAGE::FONT4);
+		LoadDivGraph(".\\media\\image\\font5.png", 25, 5, 5, 180, 60, image_+RENDER_IMAGE::FONT5);
+		LoadDivGraph(".\\media\\image\\number.png", 20, 10, 2, 60, 60, image_+RENDER_IMAGE::NUMBER1);
+		LoadDivGraph(".\\media\\image\\number2.png", 6, 6, 1, 30, 60, image_+RENDER_IMAGE::NUMBER2);
+		LoadDivGraph(".\\media\\image\\bomb.jpg", 16, 8, 2, 128, 128, image_+RENDER_IMAGE::BOMB);
+		LoadDivGraph(".\\media\\image\\Z.jpg", 1, 1, 1, 47, 51, image_+RENDER_IMAGE::Z);
+		LoadDivGraph(".\\media\\image\\title.jpg", 1, 1, 1, 640, 480, image_+RENDER_IMAGE::TITLE));
+		LoadDivGraph(".\\media\\image\\attend.png", 1, 1, 1, 640, 480, image_+RENDER_IMAGE::ATTEND));
+
+		color_[0] = GetColor(255, 255, 255);// BG
+		color_[1] = GetColor(0, 255, 0); // GROUND
 	}
 
-	GetHitKeyStateAll(keyBuf);
-	if (keyBuf[KEY_INPUT_Z] == 1)
-		*scene = 2;
-}
-
-//éQâ¡êlêîämîF
-void Attend(char *keyBuf, struct CHARADATA *player, CHARADATA *player2, CHARADATA *player3, int *attend, int *font4, int *start, int *scene, int *check)
-{
-	DrawGraph(0, 0, *attend, FALSE);
-
-	GetHitKeyStateAll(keyBuf);
-	if (keyBuf[KEY_INPUT_SPACE] == 1)
+	void DrawBox(int x1 , int y1 , int x2 , int y2, RENDER_COLOR color)
 	{
-		player->in = 1;
-		player->on = 1;
-
-	}
-	if (keyBuf[KEY_INPUT_1] == 1)
-	{
-		player2->in = 1;
-		player2->on = 1;
-	}
-	if (keyBuf[KEY_INPUT_RETURN] == 1)
-	{
-		player3->in = 1;
-		player3->on = 1;
+		DrawBox(x1, y1, x2, y2, color_[color], TRUE);
 	}
 
-	if (player->on == 1)
+	void Draw(int x, int y, RENDER_IMAGE image, int image_sub = 0, bool turn = false)
 	{
-		DrawGraph(260, 250, font4[4], TRUE);
-		DrawGraph(287, 300, player->image[0], TRUE);
-	}
-	if (player2->on == 1)
-	{
-		DrawGraph(100, 250, font4[4], TRUE);
-		DrawGraph(127, 300, player2->image[0], TRUE);
-	}
-	if (player3->on == 1)
-	{
-		DrawGraph(420, 250, font4[4], TRUE);
-		DrawGraph(447, 300, player3->image[0], TRUE);
-	}
-
-	if (keyBuf[KEY_INPUT_Z] == 1 && *check == 1)
-	{
-		*start = GetNowCount();
-		*scene = 3;
-	}
-
-	if (keyBuf[KEY_INPUT_Z] != 1)
-	{
-		if (player->on == 1 || player2->on == 1 || player3->on == 1)
-			*check = 1;
-	}
-}
-
-//éûä‘åvéZ
-void CheackTime(int start, int end, int interval, int *second)
-{
-	end = GetNowCount();
-	interval = end - start;
-	*second = interval / 1000.0;
-}
-
-//ÉXÉ^Å[ÉgÉVÅ[Éì
-void StartScene(int *font3, int *font4, int *number1, int *number2, int *second, int *scene)
-{
-	int i = 0;
-	if (*second >= 0 && *second < 2)
-	{
-		DrawRotaGraph(310, 230, 1.0, 0, font3[25], TRUE);
-		DrawRotaGraph(460, 230, 1.0, 0, number1[10], TRUE);
-	}
-	if (*second >= 2 && *second < 3)
-	{
-		DrawRotaGraph(310, 230, 1.0, 0, font4[0], TRUE);
-		DrawRotaGraph(400, 230, 1.0, 0, number2[5], TRUE);
-	}
-	if (*second >= 3)
-		*scene = 4;
-}
-
-//ècà⁄ìÆ
-void CharaMove(struct CHARADATA *player, CHARADATA *player2, CHARADATA *player3)
-{
-	player->y += player->inerVec;
-	player2->y += player2->inerVec;
-	player3->y += player3->inerVec;
-}
-
-//ìÍÇÃãììÆ
-void NawaMove(int *anime, int *change, int *speed, int *score)
-{
-	int i;
-
-	//ìÍÇÃäÓñ{ìÆçÏ
-	if (*change == TRUE)
-	{
-		(*anime)++;
-		if (*anime > ((*speed) * 16) - 2)
-		{
-			*change = FALSE;
-			(*score)++;
+		int GrHandle = image_[image + image_sub];
+		
+		if(turn){
+			DrawTurnGraph(x, y, GrHandle, TRUE);
+		}else{
+			DrawGraph(x, y, GrHandle, TRUE);
 		}
 	}
-	if (*change == FALSE)
-	{
-		(*anime)--;
-		if (*anime < (*speed - 1))
-		{
-			*change = TRUE;
+};
 
+class Nawa{
+private:
+	bool change_;
+	int anime_;
+	int speed_;
+
+	//„Çπ„Éî„Éº„ÉâÂ§âÂåñ
+	void changeSpeed(int score)
+	{
+		const int table[] = {
+			5, 4, 3, 2, 4, 2, 3, 2, 5, 3, // 0-49
+			4,2,5,2,1, // 50 -
+		};
+
+		int rank = score / 5;
+		if(sizeof(table)/sizeof(table[0]) <= rank) speed_ = 1;// „ÉÜ„Éº„Éñ„É´„ÅÆ„Çπ„Ç≥„Ç¢„ÇíË∂Ö„Åà„Å¶„ÅÑ„Åü„ÇâÊúÄÈ´òÈÄü
+
+		speed_ = table[rank];
+	}	
+	
+public:
+	Nawa(){Initialize();}
+	~Nawa(){}
+	
+	void Initialize()
+	{
+		change_ = true;
+		anime_ = 0;
+		speed_ = 5;
+	}
+	
+	bool Update(int score)
+	{
+		bool is_clear = false;
+
+		//Á∏Ñ„ÅÆÂü∫Êú¨Âãï‰Ωú
+		if (change_)
+		{
+			anime_++;
+			if (anime_> (speed_ * 16) - 2)// ÊÑèÂë≥„ÅåÂàÜ„Åã„Çâ„Å™„ÅÑ‚Ä¶
+			{
+				change_ = FALSE;
+				is_clear = true;
+			}
+		}else{
+			anime_--;
+			if (anime_ < (speed_ - 1))
+			{
+				change_ = TRUE;
+				changeSpeed(score);
+			}
+		}
+
+		return is_clear;
+	}
+	
+	bool IsHitTime()
+	{
+		return (speed_ * 16) - 10 < anime_;// ÊÑèÂë≥„ÅåÂàÜ„Åã„Çâ„Å™„ÅÑ‚Ä¶
+	}
+	
+	void Draw(Renderer &render)
+	{
+		render.Draw(27, 235, RENDER_IMAGE::NAWA, anime_ / speed_);
+	}
+
+};
+
+struct INIT_PLAYER
+{
+	int x;					// Ê®™‰ΩçÁΩÆ
+	int image_idx;			// Ë°®Á§∫Áî®„ÅÆÁï™Âè∑
+	unsigned char jump_key;	// Êäº„Åô„Å®„Ç∏„É£„É≥„Éó„Åô„Çã„Ç≠„Éº
+};
+
+class Player
+{
+private:
+	int x_ = 320;
+	float y_ = 320.0f;// Âä†ÈÄüÂ∫¶ÈÅãÂãï„Çí„Åô„Çã„ÅÆ„Åß„ÄÅÊµÆÂãïÂ∞èÊï∞ÁÇπ„ÅßÁÆ°ÁêÜ
+	float velocity_y_ = 0.0f;
+	bool attend_;
+	int life_ = 1;
+	int death_cnt_ = 0;
+	bool onGround_ = false;
+	unsigned char jump_key_ = KEY_INPUT_SPACE;
+	
+	int image_idx_ = 0;
+public:
+	Player(){}
+	~Player(){}
+	
+	bool has_left() const
+	{
+		return (death_cnt_ <= 16);
+	}
+	
+	// ‰∏ÄÂ∫¶„Å†„Åë„ÅÆÂàùÊúüÂåñ
+	void SetUp(const INIT_PLAYER &data)
+	{
+		x_ = data.x;
+		image_idx_ = data.image_idx;
+		jump_key_ = data.jump_key;
+		
+		Initialize();
+	}
+	
+	// „Ç≤„Éº„É†„Åî„Å®„ÅÆÂàùÊúüÂåñ
+	void Initialize()
+	{
+		life_ = 1;
+		death_cnt_ = 0;
+		attend_ = false;
+		onGround_ = FALSE;
+		velocity_y_ = 0.0f;
+	}
+	
+	bool CheckAttend(const char *keyBuf)
+	{
+		if (keyBuf[jump_key_] == 1)
+		{
+			attend_ = true;
+		}
+		
+		return attend_;
+	}
+	
+	void CheackonGround()
+	{
+		const float max_height = 400.0f;
+		
+		if (pos.y > max_height)
+		{
+			pos.y = max_height;
+			onGround_ = TRUE;
+			velocity_y_ = 0.0f;
 		}
 	}
-}
+	
+	bool ChackFailed()
+	{
+		if (!attend_) return false;
 
-//ÉXÉsÅ[Éhïœâª
-void SpeedChange(int *change, int *speed, int *score)
-{
-	if (5 == (*score) && *change == TRUE)
-		*speed = 4;
-	if (10 == (*score) && *change == TRUE)
-		*speed = 3;
-	if (15 == (*score) && *change == TRUE)
-		*speed = 2;
-	if (20 == (*score) && *change == TRUE)
-		*speed = 4;
-	if (25 == (*score) && *change == TRUE)
-		*speed = 2;
-	if (30 == (*score) && *change == TRUE)
-		*speed = 3;
-	if (35 == (*score) && *change == TRUE)
-		*speed = 2;
-	if (40 == (*score) && *change == TRUE)
-		*speed = 5;
-	if (45 == (*score) && *change == TRUE)
-		*speed = 3;
-	if (50 == (*score) && *change == TRUE)
-		*speed = 4;
-	if (55 == (*score) && *change == TRUE)
-		*speed = 2;
-	if (65 == (*score) && *change == TRUE)
-		*speed = 5;
-	if (70 == (*score) && *change == TRUE)
-		*speed = 2;
-	if (75 == (*score) && *change == TRUE)
-		*speed = 1;
-
-}
-
-//É{É^Éìì¸óÕ(ÉWÉÉÉìÉv)
-void CharaJump(char *keyBuf, struct VECTOR2D jumpVec, struct CHARADATA *player, CHARADATA *player2, CHARADATA *player3)
-{
-	GetHitKeyStateAll(keyBuf);
-	if (keyBuf[KEY_INPUT_SPACE] == 1 && player->onGround == TRUE)
-	{
-		player->inerVec = jumpVec.y;
-		player->onGround = FALSE;
-	}
-	if (keyBuf[KEY_INPUT_1] == 1 && player2->onGround == TRUE)
-	{
-		player2->inerVec = jumpVec.y;
-		player2->onGround = FALSE;
-	}
-	if (keyBuf[KEY_INPUT_RETURN] == 1 && player3->onGround == TRUE)
-	{
-		player3->inerVec = jumpVec.y;
-		player3->onGround = FALSE;
-	}
-}
-
-//ínñ ÇÃîªíË
-void CheackonGround(struct CHARADATA *player, CHARADATA *player2, CHARADATA *player3)
-{
-
-	if (player->y > 400)
-	{
-		player->y = 400;
-		player->onGround = TRUE;
-		player->inerVec = 0;
-	}
-	if (player2->y > 400)
-	{
-		player2->y = 400;
-		player2->onGround = TRUE;
-		player2->inerVec = 0;
-	}
-	if (player3->y > 400)
-	{
-		player3->y = 400;
-		player3->onGround = TRUE;
-		player3->inerVec = 0;
-	}
-}
-
-//éÄñSîªíË
-void CheackDeath(struct CHARADATA *player, CHARADATA *player2, CHARADATA *player3, int *anime, int *speed, int *scene, int *start)
-{
-	int getnow = (*anime);
-	if (player->onGround == TRUE)
-	{
-		if (((*speed) * 16) - 10 < getnow && player->in == 1)
+		if (onGround_)
 		{
-			player->life = 0;
-			*scene = 5;
-			*start = GetNowCount();
+			life_ = 0;
+			return true;
+		}
+		
+		return false;
+	}
+	
+	void CheckAlive()
+	{
+		if (!attend_) returm;
+		
+		if (attend_ && life_ == 0){
+			death_cnt_++;
 		}
 	}
-	if (player2->onGround == TRUE)
+	
+	void Move()
 	{
-		if (((*speed) * 16) - 10 < getnow && player2->in == 1)
+		if (!attend_) returm;
+
+		if (!onGround_) velocity_y_ += 0.8f;// ÈáçÂäõ
+		
+		y_ += velocity_y_;
+	}
+	
+	void Jump(const char *keyBuf)
+	{
+		if (!attend_) return;
+
+		if (keyBuf[jump_key_] == 1 && onGround_)
 		{
-			player2->life = 0;
-			*scene = 5;
-			*start = GetNowCount();
+			velocity_y_ = -15.0f;
+			onGround_ = false;
 		}
 	}
-	if (player3->onGround == TRUE)
+
+	void Draw(Renderer &render)
 	{
-		if (((*speed) * 16) - 10 < getnow && player3->in == 1)
+		if (!attend_) return;
+
+		if (life_ == 1)
 		{
-			player3->life = 0;
-			*scene = 5;
-			*start = GetNowCount();
-		}
-	}
-}
-
-//èdóÕê›íË
-void Gravity(struct CHARADATA *player, CHARADATA *player2, CHARADATA *player3, struct VECTOR2D GravVec)
-{
-	if (player->onGround == FALSE)
-		player->inerVec += GravVec.y;
-	if (player2->onGround == FALSE)
-		player2->inerVec += GravVec.y;
-	if (player3->onGround == FALSE)
-		player3->inerVec += GravVec.y;
-}
-
-//âÊëúï\é¶
-void DrawScreen(struct CHARADATA player, CHARADATA *player2, CHARADATA *player3, int *color, int *nawa, int *anime, int *speed, int *bomb)
-{
-	//ínñ Ç∆îwåiÇÃï\é¶
-	DrawBox(0, 0, 640, 480, color[0], TRUE);
-	DrawBox(0, 400, 640, 480, color[1], TRUE);
-
-	//éÂêlåˆÇÃï\é¶
-	if (player.in == 1)
-	{
-		if (player.life == 1)
-		{
-			if (player.onGround == FALSE)
-				DrawGraph(player.x - 33, player.y - 100, player.image[1], TRUE);
-			else
-				DrawTurnGraph(player.x - 33, player.y - 100, player.image[0], TRUE);
+			bool is_turn = onGround_;
+			render.Draw(x_, y_ - 100, image_idx_, is_turn ? 0 : 1, is_turn);
 		}
 		else
 		{
-			if (player.death < 17)
-				DrawGraph(player.x - 33, player.y - 100, bomb[player.death], TRUE);
-			(player.death)++;
+			if (has_left()){
+				render.Draw(x_, y_ - 100, RENDER_IMAGE::BOMB, death_cnt_);
+			}
 		}
 	}
-	if (player2->in == 1)
-	{
-		if (player2->life == 1)
-		{
-			if (player2->onGround == FALSE)
-				DrawGraph(player2->x - 131, player2->y - 100, player2->image[1], TRUE);
-			else
-				DrawTurnGraph(player2->x - 131, player2->y - 100, player2->image[0], TRUE);
-		}
-		else
-		{
-			if ((player2->death) < 17)
-				DrawGraph(player.x - 131, player.y - 100, bomb[player2->death], TRUE);
-			(player2->death)++;
-		}
-	}
-	if (player3->in == 1)
-	{
-		if (player3->life == 1)
-		{
-			if (player3->onGround == FALSE)
-				DrawGraph(player3->x + 65, player3->y - 100, player3->image[1], TRUE);
-			else
-				DrawTurnGraph(player3->x + 65, player3->y - 100, player3->image[0], TRUE);
-		}
-		else
-		{
-			if ((player3->death) < 17)
-				DrawGraph(player3->x - 65, player3->y - 100, bomb[player.death], TRUE);
-			(player3->death)++;
-		}
-	}
+};
 
-	//Ç»ÇÌÇÃï\é¶
-	DrawGraph(27, 235, nawa[(*anime) / (*speed)], TRUE);
-}
-
-//ÉQÅ[ÉÄÉIÅ[ÉoÅ[
-void GameOver(int *score, int *font1, int *font3, int *number1, int *start, int *scene, int *check, int *anime, int *change, int *speed, struct CHARADATA *player, CHARADATA *player2, CHARADATA *player3)
+class PlayerList
 {
-	int i, j, end, second;
-	i = *score % 10;
-	j = *score / 10;
-
-	end = GetNowCount();
-	second = (end - *start) / 1000.0;
-
-	DrawRotaGraph(310, 150, 1.0, 0, font1[3], TRUE);
-	DrawRotaGraph(200, 230, 1.0, 0, font3[17], TRUE);
-	DrawRotaGraph(450, 230, 1.0, 0, number1[j], TRUE);
-	DrawRotaGraph(510, 230, 1.0, 0, number1[i], TRUE);
-
-	if (second > 20)
-	{
-		*anime = 0;
-		*change = TRUE;
-		*speed = 5;
-		*score = 0;
-		*scene = 1;
-		*check = 0;
-
-		player->life = 1;
-		player2->life = 1;
-		player3->life = 1;
-		player->death = 0;
-		player2->death = 0;
-		player3->death = 0;
-		player->in = 0;
-		player2->in = 0;
-		player3->in = 0;
-		player->on = 0;
-		player2->on = 0;
-		player3->on = 0;
-		player->onGround = FALSE;
-		player2->onGround = FALSE;
-		player3->onGround = FALSE;
-		player->inerVec = 0;
-		player2->inerVec = 0;
-		player3->inerVec = 0;
+private:
+	int num_ = 0;
+	Player *player_=nullptr;
+public:
+	PlayerList(int num){
+		num_ = num;
+		player_ = new Player[num];
 	}
-}
+	~PlayerList(){
+		delete[] player_;
+		num_ = 0;
+	}
+	
+	void SetUp(const PLAYER_DATA *a_player_data)
+	{
+		for( int i = 0; i < num_; i++ )
+		{
+			player_[i].SetUp(a_player_data[i]);
+		}
+	}
 
-//É\Å[ÉXñ{ï∂
+	void Initialize()
+	{
+		for( auto&& player : player_ )
+		{
+			player.Initialize();
+		}
+	}
+
+	void Update()
+	{
+		for( auto&& player : player_ )
+		{
+			player.Move();
+		}
+	}
+
+	void Jump()
+	{
+		for( auto&& player : player_ )
+		{
+			player.Jump();
+		}
+	}
+
+	void CheackonGround()
+	{
+		for( auto&& player : player_ )
+		{
+			player.CheackonGround();
+		}
+	}
+
+	unsigned int CheckAttend(const char *keyBuf)
+	{
+		unsigned int flag = 0;
+		
+		for( int i = 0; i < num_; i++ )
+		{
+			if(player_[i].CheckAttend(keyBuf)){
+				flag += (1 << i);
+			}
+		}
+		
+		return flag;
+	}
+
+	bool ChackFailed()
+	{
+		bool failed = false;
+		
+		for( auto&& player : player_ )
+		{
+			failed |= player.ChackFailed();
+		}
+		
+		return failed;
+	}
+	
+	void Draw(Renderer &render)
+	{
+		for( int i = 0; i < num_; i++ )
+		{
+			player_[i].Draw(render, i);
+		}
+	}
+};
+
+class Game
+{
+private:
+	int score_;
+	Nawa nawa_;
+	PlayerList *players_;
+public:
+	Game(){
+		players_ = new PlayerList(3);
+	}
+	
+	~Game(){
+		SAFE_DELETE(players_);
+	}
+	
+	// ‰∏ÄÂ∫¶„Å†„Åë„ÅÆÂàùÊúüÂåñ
+	void SetUp(const PLAYER_DATA *a_player_data)
+	{
+		players_.SetUp(a_player_data);
+	}
+	
+	// „Ç≤„Éº„É†„Åî„Å®„ÅÆÂàùÊúüÂåñ
+	void Initialize()
+	{
+		score_ = 0;
+		players_.Initialize();
+		nawa_.Initialize();
+	}
+	
+	unsigned int CheckAttend(const char *keyBuf)
+	{
+		return players_->CheckAttend(keyBuf);
+	}
+
+	bool ChackFailed()
+	{
+		if(!nawa_.IsHitTime()) return false;
+
+		return players_->ChackFailed();
+	}
+	
+	void Update(const char *keyBuf) 
+	{
+		players_->CheackonGround();
+
+		players_->Update();
+		players_->Jump(keyBuf);
+		players_->CheckAlive();
+	}
+	
+	void Draw(Renderer &render)
+	{
+		//‰∏ª‰∫∫ÂÖ¨„ÅÆË°®Á§∫
+		players_->Draw(render);
+			
+		nawa_.Draw(render);
+	}
+};
+
+
+enum class SCENE_NAME
+{
+	TITLE = 0,
+	ATTEND,
+	START,
+	PLAY,
+	GAMEOVER,
+	
+	NUM,
+	
+	INVALID,
+};
+
+// ÂêÑ„Ç∑„Éº„É≥„ÅÆFSM
+class FSM
+{
+public:
+	FSM(){}	
+	virtual ~FSM(){}
+	
+	virtual void Initialize(Game &game) = 0;
+	virtual SCENE_NAME Update(Game &game, Renderer &render, const char *keyBuf) = 0;
+};
+
+class FSM_TITLE : public FSM
+{
+	int start_;
+public:
+	FSM_TITLE(){}	
+	~FSM_TITLE(){}
+	
+	void Initialize(Game &game) override 
+	{
+		start_ = GetNowCount();
+	}
+	
+	SCENE_NAME Update(Game &game, Renderer &render, const char *keyBuf) override
+	{
+		render.Draw(0,0,RENDER_IMAGE::TITLE);
+
+		int time = CheackTime(start_);
+
+		if (time & 1)// ‰∏ÄÁßí„Åî„Å®ÁÇπÊªÖ
+		{
+			render.Draw(300, 360, RENDER_IMAGE::FONT2, 14);
+			render.Draw(450, 355, RENDER_IMAGE::Z);
+		}
+
+		if (keyBuf[KEY_INPUT_Z] == 1)
+			return SCENE_NAME::ATTEND;
+		}
+	
+		return SCENE_NAME::INVALID;
+	}
+};
+
+class FSM_ATTEND : public FSM
+{
+public:
+	FSM_ATTEND(){}	
+	~FSM_ATTEND(){}
+	
+	void Initialize(Game &game) override 
+	{
+		game.Initialize();
+	}
+	
+	SCENE_NAME Update(Game &game, Renderer &render, const char *keyBuf) override 
+	{
+		SCENE_NAME ret = SCENE_NAME::INVALID;
+		
+		bool attended = game.CheckAttend(keyBuf);
+		
+		bool is_all_attended = (attended & 0x7) == 0x7;
+		if (keyBuf[KEY_INPUT_Z] == 1 && is_all_attended)
+		{
+			ret = SCENE_NAME::START;
+		}
+		
+		render.Draw(0, 0, RENDER_IMAGE::ATTEND);
+
+		if (attended & (1<<0))
+		{
+			render.Draw(260, 250,RENDER_IMAGE::FONT4, 4);
+			render.Draw(287, 300,RENDER_IMAGE::PLAYER1, 0);
+		}
+		if (attended & (1<<1))
+		{
+			render.Draw(100, 250,RENDER_IMAGE::FONT4, 4);
+			render.Draw(127, 300,RENDER_IMAGE::PLAYER2, 0);
+		}
+		if (attended & (1<<2))
+		{
+			render.Draw(420, 250,RENDER_IMAGE::FONT4, 4);
+			render.Draw(447, 300,RENDER_IMAGE::PLAYER3, 0);
+		}
+
+		return ret;
+	}
+};
+
+class FSM_IN_GAME : public FSM
+{
+protected:
+	int start_;
+
+	void Draw(conat Game &game, Renderer &render)
+	{
+		//Âú∞Èù¢„Å®ËÉåÊôØ„ÅÆË°®Á§∫
+		render.DrawBox(0, 0, 640, 480, RENDER_COLOR::BG);
+		render.DrawBox(0, 400, 640, 480, RENDER_COLOR::GROUND, TRUE);
+		
+		game.Draw(render);
+	}
+
+public:
+	FSM_START(){}	
+	~FSM_START(){}
+	
+	virtual void Initialize(Game &game) override {
+		start_ = GetNowCount();
+	};
+	virtual SCENE_NAME Update(Game &game, Renderer &render, const char *keyBuf) override 
+	{
+		game.Update(keyBuf);
+
+		Draw(game, render);
+		
+		return SCENE_NAME::INVALID;
+	}
+};
+
+//„Çπ„Çø„Éº„Éà„Ç∑„Éº„É≥
+class FSM_START : public FSM_IN_GAME
+{
+public:
+	FSM_START(){}	
+	~FSM_START(){}
+	
+	void Initialize(Game &game) override
+	{
+		FSM_IN_GAME::Initialize();
+	}
+	SCENE_NAME Update(PlayerList *players, Renderer &render, const char *keyBuf) override 
+	{
+		FSM_IN_GAME::Updada(players, render, keyBuf);
+		
+		int time = CheackTime(start_);
+		if (3 <= time){
+			return SCENE_NAME::PLAY;
+		}else
+		if(2 <= time){
+			render.Draw(310, 230, RENDER_IMAGE::FONT4, 0);
+			render.Draw(400, 230, RENDER_IMAGE::NUMBER2,5);
+		}else {
+			render.Draw(310, 230, RENDER_IMAGE::FONT3, 25);
+			render.Draw(460, 230, RENDER_IMAGE::NUMBER1, 10);
+		}
+		
+		return SCENE_NAME::INVALID;
+	}
+};
+
+class FSM_PLAY : public FSM_IN_GAME
+{
+public:
+	FSM_PLAY(){}	
+	~FSM_PLAY(){}
+	
+	void Initialize(Game &game) override {}
+	SCENE_NAME Update(PlayerList *players, Renderer &render, const char *keyBuf) override 
+	{
+		SCENE_NAME ret = SCENE_NAME::INVALID;
+		
+		bool failed = game.ChackFailed();
+		if(failed) {ret = SCENE_NAME::GAMEOVER;}
+
+		bool is_clear = nawa_.Update();
+		if(is_clear) {score++;}
+
+		FSM_IN_GAME::Updada(players, render, keyBuf);
+		
+		return ret;
+	}
+};
+
+class FSM_GAMEOVER : public FSM_IN_GAME
+{
+private:
+	int start_;
+public:
+	FSM_GAMEOVER(){}	
+	~FSM_GAMEOVER(){}
+	
+	void Initialize(Game &game) override {
+		start_ = GetNowCount();
+	}
+	
+	SCENE_NAME Update(Gmae &game, Renderer &render, const char *keyBuf) override 
+	{
+		SCENE_NAME ret = SCENE_NAME::INVALID;
+		
+		FSM_IN_GAME::Updada();
+		
+		int time = CheackTime(start_);
+		if (time > 20)
+		{
+			ret SCENE_NAME::TITLE;
+		}
+		
+		render.Draw(310, 150, RENDER_IMAGE::FONT1, 3);
+		render.Draw(200, 230, RENDER_IMAGE::FONT3, 17);
+		render.Draw(450, 230, RENDER_IMAGE::NUMBER1, score / 10);
+		render.Draw(510, 230, RENDER_IMAGE::NUMBER1, score % 10);
+
+		return ret;
+	}
+};
+
+// „Ç∑„Éº„É≥ÁÆ°ÁêÜ
+class Scene{
+	FSM **fsm_[SCENE_NAME::NUM];
+	FSM *current_;
+public:
+	Scene(){
+		// SCENE_NAME „ÅÆÁï™Âè∑„Å®Âêà„Çè„Åõ„Çã
+		fsm_[0] = new FSM_TITLE();
+		fsm_[1] = new FSM_ATTEND();
+		fsm_[2] = new FSM_START();
+		fsm_[3] = new FSM_PLAY();
+		fsm_[4] = new FSM_GAMEOVER();
+	}
+	~Scene(){
+		for( auto&& fsm : fsm_ )
+		{
+			delete fsm;
+		}
+	}
+	
+	void Initialize()
+	{
+		current_ = fsm_[0];
+		current_->Initialize();
+	}
+	
+	void Update(PlayerList *players, Renderer &render, const char *keyBuf)
+	{
+		SCENE_NAME next = current_->Update(players, render, keyBuf);
+		
+		// Ëøî„ÇäÂÄ§„Å´ SCENE_NAME::INVALID ‰ª•Â§ñ„ÅåÊù•„Åü„ÇâÂàá„ÇäÊõø„Åà
+		if(next != SCENE_NAME::INVALID && next < SCENE_NAME::NUM){
+			current_ = fsm_[next];
+			current_->Initialize();
+		}
+	}
+};
+
+
 int WINAPI WinMain(HINSTANCE hI, HINSTANCE hP, LPSTR lpC, int nC)
 {
-	struct VECTOR2D jumpVec = { -15 };
-	struct VECTOR2D GraVec = { 0.8 };
-	int nawa[16], color[2], font1[15], font2[68], font3[42], font4[35], font5[25], number1[20], number2[6], bomb[16], title, attend, z;
-	int interval = 0, end = 0, start, second;
-	int anime = 0, change = TRUE, speed = 5, score = 0, scene = 1, check = 0;
-	char keyBuf[256];
+	Scene scene;
+	Game game;
+	Renderer renderer;
 
-	srand((unsigned int)time(NULL));
 	ChangeWindowMode(TRUE);
 	if (DxLib_Init() == -1)
 		return -1;
 	SetDrawScreen(DX_SCREEN_BACK);
-	start = GetNowCount();
-	LoadResource(nawa, &player, &player2, &player3, color, font1, font2, font3, font4, font5, number1, number2, bomb, &z, &title, &attend);
 
+	const PLAYER_DATA player_data[] = {
+		{RENDER_IMAGE::PLAYER1, 320 -33, KEY_INPUT_SPACE},
+		{RENDER_IMAGE::PLAYER2, 320-131, KEY_INPUT_1},
+		{RENDER_IMAGE::PLAYER3, 320 +65, KEY_INPUT_RETURN},
+	};
+	
+	renderer.Initialie();
+	game.SetUp(player_data);
+	scene.Initialize();
 
 	while (ProcessMessage() == 0)
 	{
-		if (scene == 3 || scene == 4 || scene == 5)
-		{
-			CheackTime(start, end, interval, &second);
-			if (scene == 4)
-			{
-				CheackDeath(&player, &player2, &player3, &anime, &speed, &scene, &start);
-
-				NawaMove(&anime, &change, &speed, &score);
-				SpeedChange(&change, &speed, &score);
-			}
-			CheackonGround(&player, &player2, &player3);
-
-			Gravity(&player, &player2, &player3, GraVec);
-			CharaMove(&player, &player2, &player3);
-			CharaJump(keyBuf, jumpVec, &player, &player2, &player3);
-
-			DrawScreen(player, &player2, &player3, color, nawa, &anime, &speed, bomb);
-			if (scene == 3)
-				StartScene(font3, font4, number1, number2, &second, &scene);
-			if (scene == 5)
-				GameOver(&score, font1, font3, number1, &start, &scene, &check, &anime, &change, &speed, &player, &player2, &player3);
-		}
-		if (scene == 1)
-			Title(keyBuf, &title, font2, &z, &start, &scene);
-		if (scene == 2)
-			Attend(keyBuf, &player, &player2, &player3, &attend, font4, &start, &scene, &check);
+		char keyBuf[256];
+		GetHitKeyStateAll(keyBuf);
+		
+		scene.Update(game, renderer, keyBuf);
 
 		ScreenFlip();
-		if (keyBuf[KEY_INPUT_ESCAPE])
-			break;
+		
+		if (keyBuf[KEY_INPUT_ESCAPE]) break;
 	}
+
 	DxLib_End();
+	delete players;
+	
 	return 0;
 }
